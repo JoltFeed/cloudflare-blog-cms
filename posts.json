@@ -1,0 +1,12 @@
+[
+  {
+    "id": "1",
+    "title": "Welcome to My Cloudflare & GitHub Blog",
+    "slug": "welcome-to-my-blog",
+    "date": "2026-11-08",
+    "category": "General",
+    "author": "JoltFeed",
+    "excerpt": "Welcome to our new serverless blog powered by Cloudflare Pages and GitHub API!",
+    "content": "This is the very first blog post published on our new Cloudflare Pages blog. The entire site is static and updates automatically via the GitHub API whenever posts are created or modified in the admin dashboard."
+  }
+]
