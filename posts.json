@@ -1,22 +1,37 @@
 [
   {
-    "id": "1794178878943",
-    "title": "aasd",
-    "slug": "aasd",
-    "date": "2026-11-08",
-    "category": "asd",
-    "author": "JoltFeed",
-    "excerpt": "asd",
-    "content": "asd"
+    "id": "post-1",
+    "title": "Welcome to JoltFeed Cloudflare Blog CMS",
+    "category": "Technology",
+    "excerpt": "Experience ultra-fast digital media and blog publishing powered by Cloudflare, local browser storage, and modular design.",
+    "content": "<p>Welcome to <strong>JoltFeed</strong>! This modern CMS allows complete control over articles, comments, photo/video uploads, and ad integration.</p><p>Explore the features including AI post generation, interactive reader comments, and social sharing across all platforms.</p>",
+    "tags": ["Technology", "Cloudflare", "CMS"],
+    "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80",
+    "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "date": "Nov 8, 2026",
+    "author": "Admin",
+    "likes": 12,
+    "comments": [
+      {
+        "id": "c-1",
+        "name": "Sarah Jenkins",
+        "text": "Awesome speed and clean design! Love the embedded video player feature.",
+        "date": "Nov 8, 2026"
+      }
+    ]
   },
   {
-    "id": "1",
-    "title": "Welcome to My Cloudflare & GitHub Blog",
-    "slug": "welcome-to-my-blog",
-    "date": "2026-11-08",
-    "category": "General",
-    "author": "JoltFeed",
-    "excerpt": "Welcome to our new serverless blog powered by Cloudflare Pages and GitHub API!",
-    "content": "This is the very first blog post published on our new Cloudflare Pages blog. The entire site is static and updates automatically via the GitHub API whenever posts are created or modified in the admin dashboard."
+    "id": "post-2",
+    "title": "The Evolution of AI and Web Development",
+    "category": "AI & Future",
+    "excerpt": "How modern language models and automated generation are reshaping content management workflows.",
+    "content": "<p>Artificial intelligence is transforming how digital creators build and publish content. With automated generation tools, structured multi-paragraph blog posts can be drafted in seconds.</p>",
+    "tags": ["AI", "Future", "WebDev"],
+    "image": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1000&q=80",
+    "video": "",
+    "date": "Nov 7, 2026",
+    "author": "Admin",
+    "likes": 8,
+    "comments": []
   }
 ]
