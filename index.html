@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudflare Blog CMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="./" class="text-2xl font-bold text-blue-600 hover:text-blue-700 tracking-tight">Cloudflare Blog</a>
+      <div class="flex items-center space-x-4">
+        <a href="./admin/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">Admin Panel</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+    <div id="posts-container" class="space-y-6">
+      <div class="text-center py-12 text-gray-500">Loading blog posts...</div>
+    </div>
+
+    <article id="single-post-container" class="hidden bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+      <button onclick="showPostList()" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 mb-6">
+        &larr; Back to all posts
+      </button>
+      <div id="post-detail-content"></div>
+    </article>
+  </main>
+
+  <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-500">
+    <p>&copy; 2026 Cloudflare Blog CMS. Powered by GitHub & Cloudflare Pages.</p>
+  </footer>
+
+  <script>
+    let allPosts = [];
+
+    async function loadPosts() {
+      const cacheBust = '?t=' + Date.now();
+      const primaryUrl = './posts.json' + cacheBust;
+      const rawDomain = 'raw.github' + 'usercontent.com';
+      const fallbackUrl = 'https://' + rawDomain + '/JoltFeed/cloudflare-blog-cms/main/posts.json' + cacheBust;
+
+      try {
+        let res = await fetch(primaryUrl);
+        if (!res.ok) throw new Error('Primary fetch failed');
+        allPosts = await res.json();
+      } catch (e) {
+        try {
+          let resFallback = await fetch(fallbackUrl);
+          if (!resFallback.ok) throw new Error('Fallback fetch failed');
+          allPosts = await resFallback.json();
+        } catch (err) {
+          console.error(err);
+          document.getElementById('posts-container').innerHTML = '<div class="text-red-500 text-center py-8">Failed to load blog posts.</div>';
+          return;
+        }
+      }
+
+      renderPosts();
+    }
+
+    function renderPosts() {
+      const container = document.getElementById('posts-container');
+      if (!allPosts || allPosts.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 text-gray-500">No blog posts found yet.</div>';
+        return;
+      }
+
+      container.innerHTML = allPosts.map(post => `
+        <article class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+          <div class="flex items-center space-x-2 text-xs font-semibold uppercase text-blue-600 mb-2">
+            <span>${escapeHtml(post.category || 'General')}</span>
+            <span>&bull;</span>
+            <span class="text-gray-400">${escapeHtml(post.date || '')}</span>
+          </div>
+          <h2 class="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition">
+            <a href="#post-${post.id}" onclick="viewPost('${post.id}')">${escapeHtml(post.title)}</a>
+          </h2>
+          <p class="text-gray-600 text-sm mb-4 line-clamp-3">${escapeHtml(post.excerpt || '')}</p>
+          <div class="flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+            <span>By ${escapeHtml(post.author || 'Admin')}</span>
+            <button onclick="viewPost('${post.id}')" class="text-blue-600 font-medium hover:underline">Read full post &rarr;</button>
+          </div>
+        </article>
+      `).join('');
+
+      handleHashChange();
+    }
+
+    function viewPost(id) {
+      const post = allPosts.find(p => String(p.id) === String(id));
+      if (!post) return;
+
+      document.getElementById('posts-container').classList.add('hidden');
+      const detailContainer = document.getElementById('single-post-container');
+      detailContainer.classList.remove('hidden');
+
+      document.getElementById('post-detail-content').innerHTML = `
+        <div class="flex items-center space-x-2 text-sm font-semibold uppercase text-blue-600 mb-3">
+          <span>${escapeHtml(post.category || 'General')}</span>
+          <span>&bull;</span>
+          <span class="text-gray-400">${escapeHtml(post.date || '')}</span>
+        </div>
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-4">${escapeHtml(post.title)}</h1>
+        <div class="text-sm text-gray-500 mb-6 pb-4 border-b border-gray-100">
+          Written by <span class="font-medium text-gray-700">${escapeHtml(post.author || 'Admin')}</span>
+        </div>
+        <div class="prose max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
+          ${escapeHtml(post.content || post.excerpt || '')}
+        </div>
+      `;
+      window.scrollTo(0, 0);
+    }
+
+    function showPostList() {
+      document.getElementById('single-post-container').classList.add('hidden');
+      document.getElementById('posts-container').classList.remove('hidden');
+      window.location.hash = '';
+    }
+
+    function handleHashChange() {
+      const hash = window.location.hash;
+      if (hash.startsWith('#post-')) {
+        const id = hash.replace('#post-', '');
+        viewPost(id);
+      } else {
+        showPostList();
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.addEventListener('hashchange', handleHashChange);
+    document.addEventListener('DOMContentLoaded', loadPosts);
+  </script>
+</body>
+</html>
