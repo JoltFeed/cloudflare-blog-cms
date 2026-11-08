@@ -1,497 +1,356 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><!DOCTYPE html>
-<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="page-title">JoltFeed Blog</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-    .prose img { border-radius: 0.75rem; width: 100%; height: auto; margin: 1.5rem 0; }
-    .prose p { margin-bottom: 1.25rem; line-height: 1.75; color: #374151; font-size: 1.05rem; }
-    .prose h2 { font-size: 1.5rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #111827; }
-    .prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #1f2937; }
-    .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
-    .prose li { margin-bottom: 0.35rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JoltFeed - Modern Blog & Digital Insights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
-  <div id="adskeeper-global-head"></div>
-
-  <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <a href="#" onclick="router.navigate('/'); return false;" class="flex items-center space-x-3 group">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-white font-black text-xl shadow-md group-hover:scale-105 transition-transform">
-            J
-          </div>
-          <div>
-            <span id="site-name" class="text-xl font-extrabold text-gray-900 tracking-tight">JoltFeed Blog</span>
-            <p id="site-tagline" class="text-xs text-gray-500 hidden sm:block">Unlimited Free Blog CMS</p>
-          </div>
-        </a>
-        <div class="flex items-center space-x-4">
-          <div class="relative hidden md:block w-64">
-            <input type="text" id="search-input" onkeyup="handleSearch(this.value)" placeholder="Search posts..." class="w-full bg-gray-100 border-0 rounded-full py-2 pl-9 pr-4 text-sm focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all">
-            <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          </div>
-          <a href="./admin/" class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-full transition-all shadow-sm">
-            <span>Admin Panel</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-    <div id="ad-header-container"></div>
-  </div>
-
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
-    <div id="view-home" class="space-y-8">
-      <div class="md:hidden">
-        <input type="text" onkeyup="handleSearch(this.value)" placeholder="Search articles..." class="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-amber-500">
-      </div>
-
-      <div id="category-chips" class="flex flex-wrap gap-2 pb-2"></div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-2 space-y-8">
-          <div id="posts-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
-          <div id="pagination-container" class="text-center pt-4">
-            <button id="load-more-btn" onclick="loadMorePosts()" class="hidden bg-white border border-gray-300 hover:border-amber-500 hover:text-amber-600 text-gray-700 font-semibold px-6 py-3 rounded-xl transition-all shadow-sm">
-              Load More Posts
-            </button>
-          </div>
-        </div>
-
-        <div class="space-y-6">
-          <div id="ad-sidebar-container"></div>
-          <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center space-x-2">
-              <span>Recent Posts</span>
-            </h3>
-            <div id="sidebar-recent-posts" class="space-y-4"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="view-post" class="hidden max-w-4xl mx-auto">
-      <button onclick="router.navigate('/')" class="inline-flex items-center space-x-2 text-sm font-semibold text-gray-500 hover:text-amber-600 mb-6 group transition-colors">
-        <span>← Back to Posts</span>
-      </button>
-
-      <article class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-10 space-y-6">
-        <div class="space-y-3">
-          <span id="post-category" class="inline-block px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold uppercase tracking-wider"></span>
-          <h1 id="post-title" class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight"></h1>
-          <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500 pt-2 border-t border-gray-100">
-            <span id="post-author" class="font-medium text-gray-700 flex items-center space-x-1">
-              <span id="post-author-name"></span>
-            </span>
-            <span>•</span>
-            <span id="post-date"></span>
-          </div>
-        </div>
-
-        <div id="post-image-container" class="rounded-2xl overflow-hidden shadow-inner max-h-96">
-          <img id="post-image" src="" alt="" class="w-full h-full object-cover">
-        </div>
-
-        <div id="ad-in-article-container" class="my-6"></div>
-
-        <div id="post-content" class="prose max-w-none"></div>
-
-        <div id="ad-below-post-container" class="pt-8 border-t border-gray-100"></div>
-      </article>
-    </div>
-  </main>
-
-  <footer class="bg-white border-t border-gray-200 mt-16 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 space-y-4 sm:space-y-0">
-      <p>&copy; 2026 JoltFeed Blog. All rights reserved.</p>
-      <div class="flex items-center space-x-4">
-        <a href="./ads.txt" target="_blank" class="hover:text-amber-600 transition-colors">ads.txt</a>
-        <span>•</span>
-        <a href="./admin/" class="hover:text-amber-600 transition-colors">Admin Panel</a>
-      </div>
-    </div>
-  </footer>
-
-  <script>
-    let allPosts = [];
-    let filteredPosts = [];
-    let config = {
-      siteTitle: "JoltFeed Blog",
-      siteTagline: "Unlimited Free Blog CMS & AdsKeeper Ad Management",
-      showDemoPlaceholders: true
-    };
-    let currentCategory = "All";
-    let searchQuery = "";
-    let visibleCount = 6;
-
-    async function init() {
-      await loadConfig();
-      await loadPosts();
-      setupRouter();
-    }
-
-    async function loadConfig() {
-      try {
-        const res = await fetch('./config.json?t=' + Date.now());
-        if (res.ok) {
-          config = await res.json();
-          if (config.siteTitle) {
-            document.getElementById('site-name').innerText = config.siteTitle;
-            document.getElementById('page-title').innerText = config.siteTitle;
-          }
-          if (config.siteTagline) {
-            document.getElementById('site-tagline').innerText = config.siteTagline;
-          }
-        }
-      } catch (e) {
-        console.warn("Could not load config.json", e);
-      }
-      renderAds();
-    }
-
-    async function loadPosts() {
-      try {
-        const res = await fetch('./posts.json?t=' + Date.now());
-        if (res.ok) {
-          allPosts = await res.json();
-        }
-      } catch (e) {
-        console.error("Failed loading posts.json", e);
-      }
-      filterAndRenderPosts();
-      renderSidebarRecent();
-      renderCategories();
-    }
-
-    function renderAdSlot(containerId, adHtml, demoTitle) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      if (adHtml && adHtml.trim()) {
-        container.innerHTML = adHtml;
-        Array.from(container.querySelectorAll("script")).forEach(oldScript => {
-          const newScript = document.createElement("script");
-          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-          if (oldScript.src) newScript.src = oldScript.src;
-          else newScript.textContent = oldScript.textContent;
-          oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
-      } else if (config.showDemoPlaceholders !== false) {
-        container.innerHTML = `
-          <div class="border-2 border-dashed border-amber-400/60 bg-amber-50/70 p-4 rounded-2xl text-center text-amber-700 text-xs font-mono my-4 shadow-sm">
-            <div class="font-bold uppercase tracking-wider mb-1">📢 ${demoTitle}</div>
-            <p class="text-xs opacity-80">Paste your AdsKeeper widget script in <a href="./admin/" class="underline font-bold hover:text-amber-900">/admin/</a> AdsKeeper Manager</p>
-          </div>`;
-      } else {
-        container.innerHTML = "";
-      }
-    }
-
-    function renderAds() {
-      if (config.adskeeperHeaderScript && config.adskeeperHeaderScript.trim()) {
-        const headContainer = document.getElementById('adskeeper-global-head');
-        headContainer.innerHTML = config.adskeeperHeaderScript;
-        Array.from(headContainer.querySelectorAll("script")).forEach(s => {
-          const sc = document.createElement("script");
-          Array.from(s.attributes).forEach(a => sc.setAttribute(a.name, a.value));
-          if (s.src) sc.src = s.src; else sc.textContent = s.textContent;
-          s.parentNode.replaceChild(sc, s);
-        });
-      }
-      renderAdSlot('ad-header-container', config.adSlotHeader, 'AdsKeeper Header Ad Slot');
-      renderAdSlot('ad-sidebar-container', config.adSlotSidebar, 'AdsKeeper Sidebar Ad Slot');
-      renderAdSlot('ad-in-article-container', config.adSlotInArticle, 'AdsKeeper In-Article Native Ad Slot');
-      renderAdSlot('ad-below-post-container', config.adSlotBelowPost, 'AdsKeeper Below-Post Composite Widget Slot');
-    }
-
-    function renderCategories() {
-      const categories = ["All", ...new Set(allPosts.map(p => p.category).filter(Boolean))];
-      const chipsContainer = document.getElementById('category-chips');
-      chipsContainer.innerHTML = categories.map(cat => `
-        <button onclick="setCategory('${cat}')" class="px-4 py-2 rounded-full text-xs font-bold transition-all ${currentCategory === cat ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}">
-          ${cat}
-        </button>
-      `).join('');
-    }
-
-    function setCategory(cat) {
-      currentCategory = cat;
-      visibleCount = 6;
-      renderCategories();
-      filterAndRenderPosts();
-    }
-
-    function handleSearch(val) {
-      searchQuery = val.toLowerCase().trim();
-      visibleCount = 6;
-      filterAndRenderPosts();
-    }
-
-    function filterAndRenderPosts() {
-      filteredPosts = allPosts.filter(p => {
-        const matchCategory = currentCategory === "All" || p.category === currentCategory;
-        const matchSearch = !searchQuery || 
-          p.title.toLowerCase().includes(searchQuery) || 
-          (p.excerpt && p.excerpt.toLowerCase().includes(searchQuery)) ||
-          (p.content && p.content.toLowerCase().includes(searchQuery));
-        return matchCategory && matchSearch;
-      });
-
-      const grid = document.getElementById('posts-grid');
-      const loadMoreBtn = document.getElementById('load-more-btn');
-
-      if (filteredPosts.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 font-medium">No posts found matching your criteria.</div>`;
-        loadMoreBtn.classList.add('hidden');
-        return;
-      }
-
-      const displayPosts = filteredPosts.slice(0, visibleCount);
-      grid.innerHTML = displayPosts.map(p => `
-        <article onclick="router.navigate('/post/${p.slug}')" class="cursor-pointer group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col h-full">
-          ${p.image ? `<div class="h-48 overflow-hidden"><img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"></div>` : ''}
-          <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
-            <div class="space-y-2">
-              <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">${p.category || 'General'}</span>
-              <h2 class="text-lg font-bold text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-2">${p.title}</h2>
-              <p class="text-xs text-gray-500 line-clamp-3">${p.excerpt || ''}</p>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="#" onclick="renderPosts()" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center font-black text-2xl text-slate-950 group-hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20">J</div>
+                <div>
+                    <h1 class="font-black text-xl tracking-tight leading-none text-white">JoltFeed</h1>
+                    <p class="text-xs text-amber-400 font-medium mt-0.5">Cloudflare Powered Digital Media</p>
+                </div>
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="./admin/" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center gap-2">
+                    🔐 Admin Panel
+                </a>
             </div>
-            <div class="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-100">
-              <span>${p.author || 'Author'}</span>
-              <span>${p.date || ''}</span>
+        </div>
+    </header>
+    <div id="ad-slot-header" class="max-w-7xl mx-auto px-4 mt-6 w-full hidden">
+        <div class="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 text-center text-xs text-slate-400">
+            <span class="font-semibold text-slate-500 uppercase tracking-widest block mb-1">Sponsored Advertisement</span>
+            <div id="ad-header-container"></div>
+        </div>
+    </div>
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="lg:col-span-3 space-y-8">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="relative w-full sm:w-72">
+                    <input type="text" id="search-input" onkeyup="filterPosts()" placeholder="🔍 Search articles..." class="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                    <button onclick="setCategory('All')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-bold rounded-xl bg-amber-500 text-slate-950">All</button>
+                    <button onclick="setCategory('Technology')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">Technology</button>
+                    <button onclick="setCategory('AI & Future')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">AI & Future</button>
+                    <button onclick="setCategory('Business')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">Business</button>
+                </div>
             </div>
-          </div>
-        </article>
-      `).join('');
-
-      if (visibleCount < filteredPosts.length) {
-        loadMoreBtn.classList.remove('hidden');
-      } else {
-        loadMoreBtn.classList.add('hidden');
-      }
-    }
-
-    function loadMorePosts() {
-      visibleCount += 6;
-      filterAndRenderPosts();
-    }
-
-    function renderSidebarRecent() {
-      const recentContainer = document.getElementById('sidebar-recent-posts');
-      recentContainer.innerHTML = allPosts.slice(0, 4).map(p => `
-        <div onclick="router.navigate('/post/${p.slug}')" class="cursor-pointer group flex items-center space-x-3">
-          ${p.image ? `<img src="${p.image}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 group-hover:opacity-80 transition-opacity">` : ''}
-          <div class="flex-grow">
-            <h4 class="text-xs font-bold text-gray-800 group-hover:text-amber-600 line-clamp-2 transition-colors">${p.title}</h4>
-            <span class="text-[10px] text-gray-400">${p.date || ''}</span>
-          </div>
+            <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </div>
-      `).join('');
-    }
-
-    function showPostDetail(slug) {
-      const post = allPosts.find(p => p.slug === slug || p.id === slug);
-      if (!post) {
-        router.navigate('/');
-        return;
-      }
-      document.getElementById('view-home').classList.add('hidden');
-      document.getElementById('view-post').classList.remove('hidden');
-      
-      document.getElementById('post-category').innerText = post.category || 'General';
-      document.getElementById('post-title').innerText = post.title;
-      document.getElementById('post-author-name').innerText = post.author || 'JoltFeed';
-      document.getElementById('post-date').innerText = post.date || '';
-      
-      const imgContainer = document.getElementById('post-image-container');
-      const imgEl = document.getElementById('post-image');
-      if (post.image) {
-        imgEl.src = post.image;
-        imgContainer.classList.remove('hidden');
-      } else {
-        imgContainer.classList.add('hidden');
-      }
-
-      document.getElementById('post-content').innerHTML = post.content || '';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    const router = {
-      navigate: function(path) {
-        window.location.hash = path;
-      },
-      handleRoute: function() {
-        const hash = window.location.hash || '#/';
-        if (hash.startsWith('#/post/')) {
-          const slug = hash.replace('#/post/', '');
-          showPostDetail(slug);
-        } else {
-          document.getElementById('view-post').classList.add('hidden');
-          document.getElementById('view-home').classList.remove('hidden');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      }
-    };
-
-    function setupRouter() {
-      window.addEventListener('hashchange', router.handleRoute);
-      router.handleRoute();
-    }
-
-    window.onload = init;
-  </script>
-</body>
-</html>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cloudflare Blog CMS</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="./" class="text-2xl font-bold text-blue-600 hover:text-blue-700 tracking-tight">Cloudflare Blog</a>
-      <div class="flex items-center space-x-4">
-        <a href="./admin/" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">Admin Panel</a>
-      </div>
+        <aside class="space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center font-bold text-slate-950">J</div>
+                    <h3 class="font-bold text-slate-900">About JoltFeed</h3>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Fast, Cloudflare-optimized digital publishing platform. Delivering real-time news, AI insights, tech innovation, and media directly to your screen.
+                </p>
+            </div>
+            <div id="ad-slot-sidebar" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center hidden">
+                <span class="font-semibold text-slate-400 text-xs uppercase tracking-wider block mb-2">Sponsored Ad</span>
+                <div id="ad-sidebar-container"></div>
+            </div>
+        </aside>
+    </main>
+    <div id="article-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white max-w-3xl w-full rounded-3xl shadow-2xl overflow-hidden my-8 border border-slate-100 max-h-[90vh] flex flex-col">
+            <div class="p-4 bg-slate-900 text-white flex items-center justify-between sticky top-0 z-10">
+                <span id="modal-category" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500 text-slate-950">Category</span>
+                <button onclick="closeArticleModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition font-bold">
+                    ✕
+                </button>
+            </div>
+            <div class="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
+                <h1 id="modal-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">Post Title</h1>
+                <div class="flex items-center space-x-4 text-xs text-slate-500 border-b pb-4">
+                    <span>👤 <span id="modal-author">Admin</span></span>
+                    <span>📅 <span id="modal-date">Nov 8, 2026</span></span>
+                </div>
+                <div id="modal-media-box" class="rounded-2xl overflow-hidden border border-slate-200 bg-slate-950"></div>
+                <div id="modal-content" class="prose prose-slate max-w-none text-slate-700 text-sm leading-relaxed space-y-4"></div>
+                <div id="ad-slot-article" class="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center hidden">
+                    <span class="text-xs text-slate-400 font-semibold uppercase block mb-1">Advertisement</span>
+                    <div id="ad-article-container"></div>
+                </div>
+                <div class="pt-4 border-t border-slate-200">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+                        📢 Share Article
+                    </h4>
+                    <div id="modal-share-buttons" class="flex flex-wrap items-center gap-2"></div>
+                    <div id="share-toast" class="hidden text-xs bg-emerald-100 border border-emerald-300 text-emerald-800 px-3 py-1.5 rounded-lg mt-2 flex items-center gap-2">
+                        ✓ Link copied to clipboard!
+                    </div>
+                </div>
+                <div class="pt-6 border-t border-slate-200 space-y-6">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        💬 Comments (<span id="modal-comments-count">0</span>)
+                    </h3>
+                    <form onsubmit="submitComment(event)" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <input type="hidden" id="comment-post-id">
+                        <div>
+                            <input type="text" id="comment-name" required placeholder="Your Name..." class="w-full px-3.5 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
+                        </div>
+                        <div>
+                            <textarea id="comment-text" required rows="3" placeholder="Write a comment..." class="w-full px-3.5 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+                        </div>
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
+                            ✈️ Submit Comment
+                        </button>
+                    </form>
+                    <div id="modal-comments-list" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
     </div>
-  </header>
-
-  <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
-    <div id="posts-container" class="space-y-6">
-      <div class="text-center py-12 text-gray-500">Loading blog posts...</div>
-    </div>
-
-    <article id="single-post-container" class="hidden bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-      <button onclick="showPostList()" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 mb-6">
-        &larr; Back to all posts
-      </button>
-      <div id="post-detail-content"></div>
-    </article>
-  </main>
-
-  <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-500">
-    <p>&copy; 2026 Cloudflare Blog CMS. Powered by GitHub & Cloudflare Pages.</p>
-  </footer>
-
-  <script>
-    let allPosts = [];
-
-    async function loadPosts() {
-      const cacheBust = '?t=' + Date.now();
-      const primaryUrl = './posts.json' + cacheBust;
-      const rawDomain = 'raw.github' + 'usercontent.com';
-      const fallbackUrl = 'https://' + rawDomain + '/JoltFeed/cloudflare-blog-cms/main/posts.json' + cacheBust;
-
-      try {
-        let res = await fetch(primaryUrl);
-        if (!res.ok) throw new Error('Primary fetch failed');
-        allPosts = await res.json();
-      } catch (e) {
-        try {
-          let resFallback = await fetch(fallbackUrl);
-          if (!resFallback.ok) throw new Error('Fallback fetch failed');
-          allPosts = await resFallback.json();
-        } catch (err) {
-          console.error(err);
-          document.getElementById('posts-container').innerHTML = '<div class="text-red-500 text-center py-8">Failed to load blog posts.</div>';
-          return;
+    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-center text-xs mt-12">
+        <p>© 2026 JoltFeed Cloudflare Blog CMS. All rights reserved.</p>
+    </footer>
+    <script>
+        const POSTS_KEY = 'joltfeed_posts';
+        const ADS_KEY = 'joltfeed_ads';
+        let allPosts = [];
+        let currentCategory = 'All';
+        async function init() {
+            let localPosts = [];
+            const stored = localStorage.getItem(POSTS_KEY);
+            if (stored) {
+                try { localPosts = JSON.parse(stored); } catch(e){}
+            }
+            try {
+                const res = await fetch('./posts.json');
+                if (res.ok) {
+                    const jsonPosts = await res.json();
+                    const ids = new Set(localPosts.map(p => p.id));
+                    jsonPosts.forEach(jp => {
+                        if (!ids.has(jp.id)) localPosts.push(jp);
+                    });
+                }
+            } catch(e) {}
+            allPosts = localPosts;
+            localStorage.setItem(POSTS_KEY, JSON.stringify(allPosts));
+            renderPosts();
+            loadAds();
         }
-      }
-
-      renderPosts();
-    }
-
-    function renderPosts() {
-      const container = document.getElementById('posts-container');
-      if (!allPosts || allPosts.length === 0) {
-        container.innerHTML = '<div class="text-center py-12 text-gray-500">No blog posts found yet.</div>';
-        return;
-      }
-
-      container.innerHTML = allPosts.map(post => `
-        <article class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
-          <div class="flex items-center space-x-2 text-xs font-semibold uppercase text-blue-600 mb-2">
-            <span>${escapeHtml(post.category || 'General')}</span>
-            <span>&bull;</span>
-            <span class="text-gray-400">${escapeHtml(post.date || '')}</span>
-          </div>
-          <h2 class="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition">
-            <a href="#post-${post.id}" onclick="viewPost('${post.id}')">${escapeHtml(post.title)}</a>
-          </h2>
-          <p class="text-gray-600 text-sm mb-4 line-clamp-3">${escapeHtml(post.excerpt || '')}</p>
-          <div class="flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
-            <span>By ${escapeHtml(post.author || 'Admin')}</span>
-            <button onclick="viewPost('${post.id}')" class="text-blue-600 font-medium hover:underline">Read full post &rarr;</button>
-          </div>
-        </article>
-      `).join('');
-
-      handleHashChange();
-    }
-
-    function viewPost(id) {
-      const post = allPosts.find(p => String(p.id) === String(id));
-      if (!post) return;
-
-      document.getElementById('posts-container').classList.add('hidden');
-      const detailContainer = document.getElementById('single-post-container');
-      detailContainer.classList.remove('hidden');
-
-      document.getElementById('post-detail-content').innerHTML = `
-        <div class="flex items-center space-x-2 text-sm font-semibold uppercase text-blue-600 mb-3">
-          <span>${escapeHtml(post.category || 'General')}</span>
-          <span>&bull;</span>
-          <span class="text-gray-400">${escapeHtml(post.date || '')}</span>
-        </div>
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-4">${escapeHtml(post.title)}</h1>
-        <div class="text-sm text-gray-500 mb-6 pb-4 border-b border-gray-100">
-          Written by <span class="font-medium text-gray-700">${escapeHtml(post.author || 'Admin')}</span>
-        </div>
-        <div class="prose max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
-          ${escapeHtml(post.content || post.excerpt || '')}
-        </div>
-      `;
-      window.scrollTo(0, 0);
-    }
-
-    function showPostList() {
-      document.getElementById('single-post-container').classList.add('hidden');
-      document.getElementById('posts-container').classList.remove('hidden');
-      window.location.hash = '';
-    }
-
-    function handleHashChange() {
-      const hash = window.location.hash;
-      if (hash.startsWith('#post-')) {
-        const id = hash.replace('#post-', '');
-        viewPost(id);
-      } else {
-        showPostList();
-      }
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    window.addEventListener('hashchange', handleHashChange);
-    document.addEventListener('DOMContentLoaded', loadPosts);
-  </script>
+        function renderPosts() {
+            const grid = document.getElementById('posts-grid');
+            const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase();
+            const filtered = allPosts.filter(p => {
+                const matchCat = currentCategory === 'All' || p.category === currentCategory;
+                const matchSearch = p.title.toLowerCase().includes(searchVal) || (p.excerpt && p.excerpt.toLowerCase().includes(searchVal));
+                return matchCat && matchSearch;
+            });
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-400">No articles found matching criteria.</div>`;
+                return;
+            }
+            grid.innerHTML = filtered.map(p => {
+                const cCount = p.comments ? p.comments.length : 0;
+                const likes = p.likes || 0;
+                let mediaHtml = '';
+                if (p.video) {
+                    if (p.video.includes('youtube.com') || p.video.includes('youtu.be')) {
+                        mediaHtml = `<div class="aspect-video w-full"><iframe src="${p.video}" class="w-full h-full rounded-t-2xl" frameborder="0" allowfullscreen></iframe></div>`;
+                    } else {
+                        mediaHtml = `<video controls class="w-full h-48 object-cover rounded-t-2xl bg-black"><source src="${p.video}"></video>`;
+                    }
+                } else if (p.image) {
+                    mediaHtml = `<img src="${p.image}" class="w-full h-48 object-cover rounded-t-2xl">`;
+                } else {
+                    mediaHtml = `<div class="w-full h-36 bg-gradient-to-r from-slate-800 to-slate-900 rounded-t-2xl flex items-center justify-center text-amber-500 text-3xl font-bold">JoltFeed</div>`;
+                }
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden group">
+                        <div>
+                            ${mediaHtml}
+                            <div class="p-5">
+                                <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">${p.category || 'General'}</span>
+                                    <span>${p.date || 'Recent'}</span>
+                                </div>
+                                <h2 onclick="openArticleModal('${p.id}')" class="font-extrabold text-slate-900 text-lg hover:text-amber-600 transition cursor-pointer line-clamp-2 mb-2">${p.title}</h2>
+                                <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">${p.excerpt || ''}</p>
+                            </div>
+                        </div>
+                        <div class="px-5 pb-5 pt-2 border-t border-slate-100 flex flex-col gap-3">
+                            <div class="flex items-center gap-1.5 overflow-x-auto text-xs">
+                                <span class="text-[10px] text-slate-400 uppercase font-bold mr-1">Share:</span>
+                                <button onclick="sharePost('facebook', '${p.id}')" class="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg font-bold" title="Share on Facebook">Facebook</button>
+                                <button onclick="sharePost('whatsapp', '${p.id}')" class="px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg font-bold" title="Share on WhatsApp">WhatsApp</button>
+                                <button onclick="sharePost('twitter', '${p.id}')" class="px-2 py-1 bg-slate-100 text-slate-800 rounded-lg font-bold" title="Share on X">X</button>
+                                <button onclick="sharePost('telegram', '${p.id}')" class="px-2 py-1 bg-sky-50 text-sky-600 rounded-lg font-bold" title="Share on Telegram">Telegram</button>
+                                <button onclick="copyPostLink('${p.id}')" class="px-2 py-1 bg-amber-50 text-amber-700 rounded-lg font-bold flex items-center gap-1" title="Copy Link">🔗 Copy Link</button>
+                            </div>
+                            <div class="flex items-center justify-between pt-1 text-xs">
+                                <button onclick="toggleLike('${p.id}')" class="flex items-center gap-1.5 font-bold text-slate-600 hover:text-red-500 transition">
+                                    ❤️ <span>${likes}</span>
+                                </button>
+                                <button onclick="openArticleModal('${p.id}')" class="flex items-center gap-1.5 font-bold text-slate-600 hover:text-amber-600 transition">
+                                    💬 <span>${cCount} Comments</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        function setCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+                if (btn.innerText === cat) {
+                    btn.className = "cat-filter-btn px-3.5 py-1.5 text-xs font-bold rounded-xl bg-amber-500 text-slate-950";
+                } else {
+                    btn.className = "cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200";
+                }
+            });
+            renderPosts();
+        }
+        function filterPosts() {
+            renderPosts();
+        }
+        function toggleLike(id) {
+            const post = allPosts.find(p => p.id === id);
+            if(post) {
+                post.likes = (post.likes || 0) + 1;
+                localStorage.setItem(POSTS_KEY, JSON.stringify(allPosts));
+                renderPosts();
+            }
+        }
+        function openArticleModal(id) {
+            const p = allPosts.find(item => item.id === id);
+            if(!p) return;
+            document.getElementById('modal-category').innerText = p.category || 'General';
+            document.getElementById('modal-title').innerText = p.title;
+            document.getElementById('modal-author').innerText = p.author || 'Admin';
+            document.getElementById('modal-date').innerText = p.date || 'Nov 8, 2026';
+            document.getElementById('modal-content').innerHTML = p.content || `<p>${p.excerpt}</p>`;
+            document.getElementById('comment-post-id').value = p.id;
+            const mediaBox = document.getElementById('modal-media-box');
+            if (p.video) {
+                if (p.video.includes('youtube.com') || p.video.includes('youtu.be')) {
+                    mediaBox.innerHTML = `<div class="aspect-video w-full"><iframe src="${p.video}" class="w-full h-full" frameborder="0" allowfullscreen></iframe></div>`;
+                } else {
+                    mediaBox.innerHTML = `<video controls class="w-full max-h-[400px] object-contain bg-black"><source src="${p.video}"></video>`;
+                }
+                mediaBox.classList.remove('hidden');
+            } else if (p.image) {
+                mediaBox.innerHTML = `<img src="${p.image}" class="w-full max-h-[400px] object-cover">`;
+                mediaBox.classList.remove('hidden');
+            } else {
+                mediaBox.classList.add('hidden');
+            }
+            const url = encodeURIComponent(window.location.origin + window.location.pathname + '#' + p.id);
+            const title = encodeURIComponent(p.title);
+            document.getElementById('modal-share-buttons').innerHTML = `
+                <a href="https://www.facebook.com/sharer/sharer.php?u=${url}" target="_blank" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700">Facebook</a>
+                <a href="https://api.whatsapp.com/send?text=${title}%20${url}" target="_blank" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700">WhatsApp</a>
+                <a href="https://twitter.com/intent/tweet?text=${title}&url=${url}" target="_blank" class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-black">X</a>
+                <a href="https://t.me/share/url?url=${url}&text=${title}" target="_blank" class="px-3 py-1.5 bg-sky-500 text-white rounded-lg text-xs font-semibold hover:bg-sky-600">Telegram</a>
+                <button onclick="copyPostLink('${p.id}')" class="px-3 py-1.5 bg-amber-500 text-slate-950 rounded-lg text-xs font-bold hover:bg-amber-400">🔗 Copy Link</button>
+            `;
+            renderModalComments(p.comments || []);
+            document.getElementById('article-modal').classList.remove('hidden');
+        }
+        function closeArticleModal() {
+            document.getElementById('article-modal').classList.add('hidden');
+        }
+        function sharePost(platform, id) {
+            const p = allPosts.find(item => item.id === id);
+            const url = encodeURIComponent(window.location.origin + window.location.pathname + '#' + (p ? p.id : ''));
+            const title = encodeURIComponent(p ? p.title : 'JoltFeed Article');
+            let link = '';
+            if(platform === 'facebook') link = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            if(platform === 'whatsapp') link = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+            if(platform === 'twitter') link = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+            if(platform === 'telegram') link = `https://t.me/share/url?url=${url}&text=${title}`;
+            if(link) window.open(link, '_blank');
+        }
+        function copyPostLink(id) {
+            const link = window.location.origin + window.location.pathname + '#' + id;
+            navigator.clipboard.writeText(link).then(() => {
+                const toast = document.getElementById('share-toast');
+                if(toast) {
+                    toast.classList.remove('hidden');
+                    setTimeout(() => toast.classList.add('hidden'), 3000);
+                } else {
+                    alert('Link copied to clipboard: ' + link);
+                }
+            }).catch(() => {
+                alert('Link: ' + link);
+            });
+        }
+        function renderModalComments(comments) {
+            document.getElementById('modal-comments-count').innerText = comments.length;
+            const container = document.getElementById('modal-comments-list');
+            if(comments.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic">No comments yet. Be the first to join the conversation!</p>`;
+                return;
+            }
+            container.innerHTML = comments.map(c => `
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-slate-900">${c.name || 'Anonymous'}</span>
+                        <span class="text-[10px] text-slate-400">${c.date || 'Just now'}</span>
+                    </div>
+                    <p class="text-slate-700 leading-normal">${c.text}</p>
+                </div>
+            `).join('');
+        }
+        function submitComment(e) {
+            e.preventDefault();
+            const postId = document.getElementById('comment-post-id').value;
+            const name = document.getElementById('comment-name').value.trim();
+            const text = document.getElementById('comment-text').value.trim();
+            if(!name || !text) return;
+            const post = allPosts.find(p => p.id === postId);
+            if(post) {
+                if(!post.comments) post.comments = [];
+                const newComment = {
+                    id: 'c_' + Date.now(),
+                    name,
+                    text,
+                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                };
+                post.comments.push(newComment);
+                localStorage.setItem(POSTS_KEY, JSON.stringify(allPosts));
+                renderModalComments(post.comments);
+                document.getElementById('comment-name').value = '';
+                document.getElementById('comment-text').value = '';
+                renderPosts();
+            }
+        }
+        function loadAds() {
+            const stored = localStorage.getItem(ADS_KEY);
+            if(stored) {
+                try {
+                    const ads = JSON.parse(stored);
+                    if(ads.header && ads.header.enable && ads.header.code) {
+                        document.getElementById('ad-header-container').innerHTML = ads.header.code;
+                        document.getElementById('ad-slot-header').classList.remove('hidden');
+                    }
+                    if(ads.article && ads.article.enable && ads.article.code) {
+                        document.getElementById('ad-article-container').innerHTML = ads.article.code;
+                        document.getElementById('ad-slot-article').classList.remove('hidden');
+                    }
+                    if(ads.sidebar && ads.sidebar.enable && ads.sidebar.code) {
+                        document.getElementById('ad-sidebar-container').innerHTML = ads.sidebar.code;
+                        document.getElementById('ad-slot-sidebar').classList.remove('hidden');
+                    }
+                } catch(e){}
+            }
+        }
+        init();
+    </script>
 </body>
 </html>
