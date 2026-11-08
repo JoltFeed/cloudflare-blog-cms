@@ -1,16 +1,16 @@
 [
   {
-    "id": "post-1",
+    "id": "1",
     "title": "Welcome to JoltFeed Cloudflare Blog CMS",
     "category": "Technology",
-    "excerpt": "Experience ultra-fast digital media and blog publishing powered by Cloudflare, local browser storage, and modular design.",
-    "content": "<p>Welcome to <strong>JoltFeed</strong>! This modern CMS allows complete control over articles, comments, photo/video uploads, and ad integration.</p><p>Explore the features including AI post generation, interactive reader comments, and social sharing across all platforms.</p>",
+    "excerpt": "Experience ultra-fast digital media and blog publishing powered by Cloudflare, local storage, and high-CTR monetization.",
+    "content": "<p>Welcome to JoltFeed! This modern CMS allows complete control over articles, ad placements, comments, and media embedding. Designed specifically for high-speed delivery, it works seamlessly across Cloudflare Pages, Cloudflare Workers, and static web hosts.</p><p>With built-in AdsKeeper integration and custom ad slot injection, creators can maximize monetization while delivering a crisp, distraction-free reading experience for audience members worldwide.</p><p>Our clean editorial layout prioritizes readability, typographic clarity, and instant page transitions without sluggish pop-up modals or unnecessary bloat.</p><p>Explore the admin panel to customize global header scripts, manage comments, tweak ad frequencies, or generate new multi-paragraph articles with a single click.</p>",
     "tags": ["Technology", "Cloudflare", "CMS"],
     "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80",
     "video": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     "date": "Nov 8, 2026",
     "author": "Admin",
-    "likes": 12,
+    "likes": 15,
     "comments": [
       {
         "id": "c-1",
@@ -21,11 +21,11 @@
     ]
   },
   {
-    "id": "post-2",
+    "id": "2",
     "title": "The Evolution of AI and Web Development",
     "category": "AI & Future",
     "excerpt": "How modern language models and automated generation are reshaping content management workflows.",
-    "content": "<p>Artificial intelligence is transforming how digital creators build and publish content. With automated generation tools, structured multi-paragraph blog posts can be drafted in seconds.</p>",
+    "content": "<p>Artificial intelligence is transforming how digital creators build and publish content. With automated tools, authors can outline ideas and refine long-form articles effortlessly.</p><p>High-CTR ad placement strategies ensure that revenue scales alongside traffic growth without compromising design standards.</p><p>Modern web applications rely on lightweight static architectures and dynamic client hydration for instant loading times and responsive interactivity.</p><p>By integrating flexible ad management directly into the publishing pipeline, webmasters retain total governance over ad spacing and reader retention.</p>",
     "tags": ["AI", "Future", "WebDev"],
     "image": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1000&q=80",
     "video": "",
