@@ -1,6 +1,356 @@
 <!DOCTYPE html>
 <html lang="en">
+<head><!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">JoltFeed Blog</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .prose img { border-radius: 0.75rem; width: 100%; height: auto; margin: 1.5rem 0; }
+    .prose p { margin-bottom: 1.25rem; line-height: 1.75; color: #374151; font-size: 1.05rem; }
+    .prose h2 { font-size: 1.5rem; font-weight: 700; margin-top: 1.75rem; margin-bottom: 0.75rem; color: #111827; }
+    .prose h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #1f2937; }
+    .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+    .prose li { margin-bottom: 0.35rem; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+  <div id="adskeeper-global-head"></div>
+
+  <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="#" onclick="router.navigate('/'); return false;" class="flex items-center space-x-3 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-white font-black text-xl shadow-md group-hover:scale-105 transition-transform">
+            J
+          </div>
+          <div>
+            <span id="site-name" class="text-xl font-extrabold text-gray-900 tracking-tight">JoltFeed Blog</span>
+            <p id="site-tagline" class="text-xs text-gray-500 hidden sm:block">Unlimited Free Blog CMS</p>
+          </div>
+        </a>
+        <div class="flex items-center space-x-4">
+          <div class="relative hidden md:block w-64">
+            <input type="text" id="search-input" onkeyup="handleSearch(this.value)" placeholder="Search posts..." class="w-full bg-gray-100 border-0 rounded-full py-2 pl-9 pr-4 text-sm focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all">
+            <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+          <a href="./admin/" class="inline-flex items-center space-x-2 bg-gray-900 hover:bg-amber-600 text-white font-medium text-xs sm:text-sm px-4 py-2 rounded-full transition-all shadow-sm">
+            <span>Admin Panel</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <div id="ad-header-container"></div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+    <div id="view-home" class="space-y-8">
+      <div class="md:hidden">
+        <input type="text" onkeyup="handleSearch(this.value)" placeholder="Search articles..." class="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-amber-500">
+      </div>
+
+      <div id="category-chips" class="flex flex-wrap gap-2 pb-2"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-8">
+          <div id="posts-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+          <div id="pagination-container" class="text-center pt-4">
+            <button id="load-more-btn" onclick="loadMorePosts()" class="hidden bg-white border border-gray-300 hover:border-amber-500 hover:text-amber-600 text-gray-700 font-semibold px-6 py-3 rounded-xl transition-all shadow-sm">
+              Load More Posts
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div id="ad-sidebar-container"></div>
+          <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center space-x-2">
+              <span>Recent Posts</span>
+            </h3>
+            <div id="sidebar-recent-posts" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-post" class="hidden max-w-4xl mx-auto">
+      <button onclick="router.navigate('/')" class="inline-flex items-center space-x-2 text-sm font-semibold text-gray-500 hover:text-amber-600 mb-6 group transition-colors">
+        <span>← Back to Posts</span>
+      </button>
+
+      <article class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-10 space-y-6">
+        <div class="space-y-3">
+          <span id="post-category" class="inline-block px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold uppercase tracking-wider"></span>
+          <h1 id="post-title" class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight"></h1>
+          <div class="flex items-center space-x-4 text-xs sm:text-sm text-gray-500 pt-2 border-t border-gray-100">
+            <span id="post-author" class="font-medium text-gray-700 flex items-center space-x-1">
+              <span id="post-author-name"></span>
+            </span>
+            <span>•</span>
+            <span id="post-date"></span>
+          </div>
+        </div>
+
+        <div id="post-image-container" class="rounded-2xl overflow-hidden shadow-inner max-h-96">
+          <img id="post-image" src="" alt="" class="w-full h-full object-cover">
+        </div>
+
+        <div id="ad-in-article-container" class="my-6"></div>
+
+        <div id="post-content" class="prose max-w-none"></div>
+
+        <div id="ad-below-post-container" class="pt-8 border-t border-gray-100"></div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="bg-white border-t border-gray-200 mt-16 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 space-y-4 sm:space-y-0">
+      <p>&copy; 2026 JoltFeed Blog. All rights reserved.</p>
+      <div class="flex items-center space-x-4">
+        <a href="./ads.txt" target="_blank" class="hover:text-amber-600 transition-colors">ads.txt</a>
+        <span>•</span>
+        <a href="./admin/" class="hover:text-amber-600 transition-colors">Admin Panel</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let allPosts = [];
+    let filteredPosts = [];
+    let config = {
+      siteTitle: "JoltFeed Blog",
+      siteTagline: "Unlimited Free Blog CMS & AdsKeeper Ad Management",
+      showDemoPlaceholders: true
+    };
+    let currentCategory = "All";
+    let searchQuery = "";
+    let visibleCount = 6;
+
+    async function init() {
+      await loadConfig();
+      await loadPosts();
+      setupRouter();
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('./config.json?t=' + Date.now());
+        if (res.ok) {
+          config = await res.json();
+          if (config.siteTitle) {
+            document.getElementById('site-name').innerText = config.siteTitle;
+            document.getElementById('page-title').innerText = config.siteTitle;
+          }
+          if (config.siteTagline) {
+            document.getElementById('site-tagline').innerText = config.siteTagline;
+          }
+        }
+      } catch (e) {
+        console.warn("Could not load config.json", e);
+      }
+      renderAds();
+    }
+
+    async function loadPosts() {
+      try {
+        const res = await fetch('./posts.json?t=' + Date.now());
+        if (res.ok) {
+          allPosts = await res.json();
+        }
+      } catch (e) {
+        console.error("Failed loading posts.json", e);
+      }
+      filterAndRenderPosts();
+      renderSidebarRecent();
+      renderCategories();
+    }
+
+    function renderAdSlot(containerId, adHtml, demoTitle) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (adHtml && adHtml.trim()) {
+        container.innerHTML = adHtml;
+        Array.from(container.querySelectorAll("script")).forEach(oldScript => {
+          const newScript = document.createElement("script");
+          Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+          if (oldScript.src) newScript.src = oldScript.src;
+          else newScript.textContent = oldScript.textContent;
+          oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+      } else if (config.showDemoPlaceholders !== false) {
+        container.innerHTML = `
+          <div class="border-2 border-dashed border-amber-400/60 bg-amber-50/70 p-4 rounded-2xl text-center text-amber-700 text-xs font-mono my-4 shadow-sm">
+            <div class="font-bold uppercase tracking-wider mb-1">📢 ${demoTitle}</div>
+            <p class="text-xs opacity-80">Paste your AdsKeeper widget script in <a href="./admin/" class="underline font-bold hover:text-amber-900">/admin/</a> AdsKeeper Manager</p>
+          </div>`;
+      } else {
+        container.innerHTML = "";
+      }
+    }
+
+    function renderAds() {
+      if (config.adskeeperHeaderScript && config.adskeeperHeaderScript.trim()) {
+        const headContainer = document.getElementById('adskeeper-global-head');
+        headContainer.innerHTML = config.adskeeperHeaderScript;
+        Array.from(headContainer.querySelectorAll("script")).forEach(s => {
+          const sc = document.createElement("script");
+          Array.from(s.attributes).forEach(a => sc.setAttribute(a.name, a.value));
+          if (s.src) sc.src = s.src; else sc.textContent = s.textContent;
+          s.parentNode.replaceChild(sc, s);
+        });
+      }
+      renderAdSlot('ad-header-container', config.adSlotHeader, 'AdsKeeper Header Ad Slot');
+      renderAdSlot('ad-sidebar-container', config.adSlotSidebar, 'AdsKeeper Sidebar Ad Slot');
+      renderAdSlot('ad-in-article-container', config.adSlotInArticle, 'AdsKeeper In-Article Native Ad Slot');
+      renderAdSlot('ad-below-post-container', config.adSlotBelowPost, 'AdsKeeper Below-Post Composite Widget Slot');
+    }
+
+    function renderCategories() {
+      const categories = ["All", ...new Set(allPosts.map(p => p.category).filter(Boolean))];
+      const chipsContainer = document.getElementById('category-chips');
+      chipsContainer.innerHTML = categories.map(cat => `
+        <button onclick="setCategory('${cat}')" class="px-4 py-2 rounded-full text-xs font-bold transition-all ${currentCategory === cat ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      visibleCount = 6;
+      renderCategories();
+      filterAndRenderPosts();
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.toLowerCase().trim();
+      visibleCount = 6;
+      filterAndRenderPosts();
+    }
+
+    function filterAndRenderPosts() {
+      filteredPosts = allPosts.filter(p => {
+        const matchCategory = currentCategory === "All" || p.category === currentCategory;
+        const matchSearch = !searchQuery || 
+          p.title.toLowerCase().includes(searchQuery) || 
+          (p.excerpt && p.excerpt.toLowerCase().includes(searchQuery)) ||
+          (p.content && p.content.toLowerCase().includes(searchQuery));
+        return matchCategory && matchSearch;
+      });
+
+      const grid = document.getElementById('posts-grid');
+      const loadMoreBtn = document.getElementById('load-more-btn');
+
+      if (filteredPosts.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 font-medium">No posts found matching your criteria.</div>`;
+        loadMoreBtn.classList.add('hidden');
+        return;
+      }
+
+      const displayPosts = filteredPosts.slice(0, visibleCount);
+      grid.innerHTML = displayPosts.map(p => `
+        <article onclick="router.navigate('/post/${p.slug}')" class="cursor-pointer group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col h-full">
+          ${p.image ? `<div class="h-48 overflow-hidden"><img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"></div>` : ''}
+          <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+            <div class="space-y-2">
+              <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">${p.category || 'General'}</span>
+              <h2 class="text-lg font-bold text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-2">${p.title}</h2>
+              <p class="text-xs text-gray-500 line-clamp-3">${p.excerpt || ''}</p>
+            </div>
+            <div class="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-100">
+              <span>${p.author || 'Author'}</span>
+              <span>${p.date || ''}</span>
+            </div>
+          </div>
+        </article>
+      `).join('');
+
+      if (visibleCount < filteredPosts.length) {
+        loadMoreBtn.classList.remove('hidden');
+      } else {
+        loadMoreBtn.classList.add('hidden');
+      }
+    }
+
+    function loadMorePosts() {
+      visibleCount += 6;
+      filterAndRenderPosts();
+    }
+
+    function renderSidebarRecent() {
+      const recentContainer = document.getElementById('sidebar-recent-posts');
+      recentContainer.innerHTML = allPosts.slice(0, 4).map(p => `
+        <div onclick="router.navigate('/post/${p.slug}')" class="cursor-pointer group flex items-center space-x-3">
+          ${p.image ? `<img src="${p.image}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0 group-hover:opacity-80 transition-opacity">` : ''}
+          <div class="flex-grow">
+            <h4 class="text-xs font-bold text-gray-800 group-hover:text-amber-600 line-clamp-2 transition-colors">${p.title}</h4>
+            <span class="text-[10px] text-gray-400">${p.date || ''}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showPostDetail(slug) {
+      const post = allPosts.find(p => p.slug === slug || p.id === slug);
+      if (!post) {
+        router.navigate('/');
+        return;
+      }
+      document.getElementById('view-home').classList.add('hidden');
+      document.getElementById('view-post').classList.remove('hidden');
+      
+      document.getElementById('post-category').innerText = post.category || 'General';
+      document.getElementById('post-title').innerText = post.title;
+      document.getElementById('post-author-name').innerText = post.author || 'JoltFeed';
+      document.getElementById('post-date').innerText = post.date || '';
+      
+      const imgContainer = document.getElementById('post-image-container');
+      const imgEl = document.getElementById('post-image');
+      if (post.image) {
+        imgEl.src = post.image;
+        imgContainer.classList.remove('hidden');
+      } else {
+        imgContainer.classList.add('hidden');
+      }
+
+      document.getElementById('post-content').innerHTML = post.content || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const router = {
+      navigate: function(path) {
+        window.location.hash = path;
+      },
+      handleRoute: function() {
+        const hash = window.location.hash || '#/';
+        if (hash.startsWith('#/post/')) {
+          const slug = hash.replace('#/post/', '');
+          showPostDetail(slug);
+        } else {
+          document.getElementById('view-post').classList.add('hidden');
+          document.getElementById('view-home').classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    };
+
+    function setupRouter() {
+      window.addEventListener('hashchange', router.handleRoute);
+      router.handleRoute();
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloudflare Blog CMS</title>
