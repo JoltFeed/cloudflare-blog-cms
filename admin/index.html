@@ -1,550 +1,539 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JoltFeed Admin Panel - CMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JoltFeed Admin — Blog & Ads Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; color: #111827; }
+    .serif-title { font-family: Georgia, Cambria, "Times New Roman", Times, serif; }
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen">
-    <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-slate-900 font-bold text-3xl mx-auto mb-3 shadow-lg shadow-amber-500/30">J</div>
-                <h1 class="text-2xl font-bold text-slate-900">JoltFeed Admin Login</h1>
-                <p class="text-sm text-slate-500 mt-1">Sign in to manage your blog content</p>
-            </div>
-            <div id="login-alert" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded-lg"></div>
-            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Username</label>
-                    <input type="text" id="login-username" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="admin">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password</label>
-                    <input type="password" id="login-password" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2">
-                    🔑 Log In
-                </button>
-            </form>
-            <div class="mt-6 text-center text-xs text-slate-400 border-t pt-4">
-                Default Username: <span class="font-mono text-slate-700 font-bold">admin</span> | Password: <span class="font-mono text-slate-700 font-bold">admin123</span>
-            </div>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
+
+  <!-- LOGIN CONTAINER -->
+  <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-6">
+      <div class="text-center space-y-2">
+        <h1 class="text-3xl font-extrabold tracking-tight serif-title text-gray-900">JoltFeed Admin</h1>
+        <p class="text-sm text-gray-500">Sign in to manage blog posts and AdsKeeper placements.</p>
+      </div>
+
+      <div id="login-alert" class="hidden p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded"></div>
+
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Username</label>
+          <input type="text" id="login-username" required value="admin" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
         </div>
-    </div>
-    <div id="admin-dashboard" class="hidden min-h-screen flex flex-col">
-        <header class="bg-slate-900 text-white shadow-md">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center font-black text-xl text-slate-950">J</div>
-                    <div>
-                        <h1 class="font-bold text-lg leading-none text-white">JoltFeed Admin Dashboard</h1>
-                        <p class="text-xs text-slate-400 mt-0.5">Content Management System</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <span id="auth-status" class="text-xs px-3 py-1 rounded-full bg-slate-800 text-emerald-400 border border-slate-700 font-medium">● Logged in as <span id="current-user-display">admin</span></span>
-                    <a href="../" target="_blank" class="text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
-                        🌐 View Site
-                    </a>
-                    <button onclick="handleLogout()" class="text-xs font-semibold bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
-                        🚪 Logout
-                    </button>
-                </div>
-            </div>
-        </header>
-        <div class="bg-white border-b border-slate-200 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 flex space-x-2 overflow-x-auto">
-                <button onclick="switchTab('posts')" id="tab-btn-posts" class="tab-btn py-3 px-5 border-b-2 border-amber-500 font-semibold text-amber-600 flex items-center gap-2">
-                    📰 Posts Management
-                </button>
-                <button onclick="switchTab('comments')" id="tab-btn-comments" class="tab-btn py-3 px-5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2">
-                    💬 Comments (<span id="comments-count-badge">0</span>)
-                </button>
-                <button onclick="switchTab('ads')" id="tab-btn-ads" class="tab-btn py-3 px-5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2">
-                    📢 AdsKeeper Ad Slots
-                </button>
-                <button onclick="switchTab('settings')" id="tab-btn-settings" class="tab-btn py-3 px-5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2">
-                    ⚙️ Settings
-                </button>
-            </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-1">Password</label>
+          <input type="password" id="login-password" required value="admin123" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
         </div>
-        <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
-            <div id="tab-posts" class="tab-content space-y-8">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
-                        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                            📝 Create / Edit Post
-                        </h2>
-                        <button type="button" onclick="resetPostForm()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg">Clear Form</button>
-                    </div>
-                    <form id="post-form" onsubmit="savePost(event)" class="space-y-6">
-                        <input type="hidden" id="post-id">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Title / Topic *</label>
-                                <input type="text" id="post-title" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="Enter post title or topic...">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Category *</label>
-                                <select id="post-category" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900 bg-white">
-                                    <option value="Technology">Technology</option>
-                                    <option value="AI & Future">AI & Future</option>
-                                    <option value="Business">Business</option>
-                                    <option value="Lifestyle">Lifestyle</option>
-                                    <option value="General">General</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center text-xl font-bold">✨</div>
-                                <div>
-                                    <h4 class="font-bold text-slate-900 text-sm">One-Click AI Post Generator</h4>
-                                    <p class="text-xs text-slate-600">Enter title & category above, then click generate to create full article, excerpt & tags instantly.</p>
-                                </div>
-                            </div>
-                            <button type="button" onclick="generatePostContent()" class="whitespace-nowrap bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2">
-                                ⚡ Generate Post
-                            </button>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Excerpt</label>
-                            <textarea id="post-excerpt" rows="2" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="Brief summary..."></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Article Content (HTML supported)</label>
-                            <textarea id="post-content" rows="8" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900 font-mono text-sm" placeholder="Write article content here..."></textarea>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                            <div class="space-y-3">
-                                <label class="block text-xs font-bold text-slate-800 uppercase flex items-center gap-2">🖼️ Featured Photo</label>
-                                <div>
-                                    <label class="block text-xs text-slate-500 mb-1">Upload Photo from Device:</label>
-                                    <input type="file" id="post-image-file" accept="image/*" onchange="handleFileUpload(event, 'image')" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-slate-500 mb-1">Or Media Photo URL:</label>
-                                    <input type="url" id="post-image-url" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Photo URL...">
-                                </div>
-                                <div id="image-preview-box" class="hidden">
-                                    <img id="image-preview" src="" class="h-24 w-full object-cover rounded-lg border border-slate-200">
-                                </div>
-                            </div>
-                            <div class="space-y-3">
-                                <label class="block text-xs font-bold text-slate-800 uppercase flex items-center gap-2">🎥 Featured Video</label>
-                                <div>
-                                    <label class="block text-xs text-slate-500 mb-1">Upload Video from Device:</label>
-                                    <input type="file" id="post-video-file" accept="video/*" onchange="handleFileUpload(event, 'video')" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-slate-500 mb-1">Or Video URL (MP4 / YouTube embed):</label>
-                                    <input type="text" id="post-video-url" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Video URL or MP4 link...">
-                                </div>
-                                <div id="video-preview-box" class="hidden">
-                                    <video id="video-preview" controls class="h-24 w-full object-cover rounded-lg border border-slate-200"></video>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Tags (comma separated)</label>
-                            <input type="text" id="post-tags" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="Tech, AI, News">
-                        </div>
-                        <div class="flex items-center justify-end gap-3 pt-3">
-                            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center gap-2">
-                                🚀 Publish Post
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        📋 Published Posts (<span id="posts-count">0</span>)
-                    </h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-700 border-collapse">
-                            <thead>
-                                <tr class="bg-slate-50 text-slate-500 font-bold uppercase text-xs border-b border-slate-200">
-                                    <th class="p-3">Media</th>
-                                    <th class="p-3">Title</th>
-                                    <th class="p-3">Category</th>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">Stats</th>
-                                    <th class="p-3 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-posts-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div id="tab-comments" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        💬 Visitor Comments Management
-                    </h3>
-                    <div id="admin-comments-list" class="space-y-4"></div>
-                </div>
-            </div>
-            <div id="tab-ads" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                        📢 AdsKeeper Ad Slots Configuration
-                    </h3>
-                    <p class="text-sm text-slate-500 mb-6">Manage ad codes and placements across your site.</p>
-                    <form onsubmit="saveAdsConfig(event)" class="space-y-6">
-                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <label class="font-bold text-sm text-slate-800">Header Ad Banner Slot</label>
-                                <input type="checkbox" id="ad-header-enable" class="w-4 h-4 accent-amber-500">
-                            </div>
-                            <textarea id="ad-header-code" rows="3" class="w-full p-3 font-mono text-xs border rounded-lg" placeholder="Ad script / banner code..."></textarea>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <label class="font-bold text-sm text-slate-800">In-Article Ad Slot</label>
-                                <input type="checkbox" id="ad-article-enable" class="w-4 h-4 accent-amber-500">
-                            </div>
-                            <textarea id="ad-article-code" rows="3" class="w-full p-3 font-mono text-xs border rounded-lg" placeholder="Ad script / inline code..."></textarea>
-                        </div>
-                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <label class="font-bold text-sm text-slate-800">Sidebar Ad Widget Slot</label>
-                                <input type="checkbox" id="ad-sidebar-enable" class="w-4 h-4 accent-amber-500">
-                            </div>
-                            <textarea id="ad-sidebar-code" rows="3" class="w-full p-3 font-mono text-xs border rounded-lg" placeholder="Ad script / sidebar widget code..."></textarea>
-                        </div>
-                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-lg shadow-md transition">Save Ad Settings</button>
-                    </form>
-                </div>
-            </div>
-            <div id="tab-settings" class="tab-content hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl">
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        👤 Admin Account Settings
-                    </h3>
-                    <form onsubmit="saveAuthSettings(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Admin Username</label>
-                            <input type="text" id="setting-username" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Admin Password</label>
-                            <input type="password" id="setting-password" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
-                        </div>
-                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-lg shadow-md transition">Update Credentials</button>
-                    </form>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl">
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        ⚙️ Optional GitHub Repository Sync
-                    </h3>
-                    <form onsubmit="saveGithubSync(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">GitHub Personal Access Token (PAT)</label>
-                            <input type="password" id="setting-gh-token" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="ghp_...">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Repository</label>
-                                <input type="text" id="setting-gh-repo" value="JoltFeed/cloudflare-blog-cms" class="w-full px-4 py-2 border rounded-lg">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Branch</label>
-                                <input type="text" id="setting-gh-branch" value="main" class="w-full px-4 py-2 border rounded-lg">
-                            </div>
-                        </div>
-                        <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg shadow-md transition">Save GitHub Sync Settings</button>
-                    </form>
-                </div>
-            </div>
-        </main>
+        <button type="submit" class="w-full py-2.5 bg-gray-900 text-white font-semibold text-sm rounded hover:bg-gray-800 transition">Log In to Dashboard</button>
+      </form>
     </div>
-    <script>
-        const AUTH_KEY = 'joltfeed_auth';
-        const POSTS_KEY = 'joltfeed_posts';
-        const COMMENTS_KEY = 'joltfeed_comments';
-        const ADS_KEY = 'joltfeed_ads';
-        let base64Photo = '';
-        let base64Video = '';
-        function getAuth() {
-            const defaultAuth = { username: 'admin', password: 'admin123', isLogged: false };
-            const stored = localStorage.getItem(AUTH_KEY);
-            return stored ? JSON.parse(stored) : defaultAuth;
+  </div>
+
+  <!-- MAIN ADMIN DASHBOARD -->
+  <div id="admin-dashboard" class="hidden min-h-screen flex flex-col">
+    
+    <!-- Top Navbar -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <span class="text-2xl font-bold serif-title text-gray-900">JoltFeed</span>
+          <span class="text-xs font-semibold uppercase px-2 py-0.5 bg-gray-100 text-gray-600 rounded">CMS & Ads Manager</span>
+        </div>
+        <div class="flex items-center space-x-3">
+          <a href="../" target="_blank" class="text-xs font-medium text-gray-600 hover:text-gray-900 transition flex items-center">
+            <span>View Live Blog</span>
+            <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          </a>
+          <button onclick="handleLogout()" class="text-xs font-semibold px-3 py-1.5 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition">Log Out</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full space-y-6">
+      
+      <!-- Tabs Bar -->
+      <div class="border-b border-gray-200 flex space-x-6 text-sm font-medium">
+        <button onclick="switchTab('posts')" id="tab-btn-posts" class="tab-btn pb-3 border-b-2 border-gray-900 text-gray-900 font-semibold">Posts Editor</button>
+        <button onclick="switchTab('ads')" id="tab-btn-ads" class="tab-btn pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-900">Ads Manager (High-CTR)</button>
+        <button onclick="switchTab('comments')" id="tab-btn-comments" class="tab-btn pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-900">Comments Manager</button>
+        <button onclick="switchTab('settings')" id="tab-btn-settings" class="tab-btn pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-900">Cloudflare & GitHub Sync</button>
+      </div>
+
+      <!-- TAB 1: POSTS EDITOR -->
+      <div id="tab-posts" class="space-y-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-bold text-gray-900">All Articles</h2>
+          <button onclick="openNewPostForm()" class="px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded hover:bg-gray-800 transition">+ Create New Article</button>
+        </div>
+
+        <!-- Post Form (New / Edit) -->
+        <div id="post-form-card" class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+          <h3 id="form-title" class="text-lg font-bold text-gray-900">Create / Edit Article</h3>
+          <form onsubmit="savePost(event)" class="space-y-4">
+            <input type="hidden" id="post-id">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Title</label>
+                <input type="text" id="post-title-input" required class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Category</label>
+                <input type="text" id="post-category-input" required placeholder="Technology, AI, Future" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Excerpt</label>
+              <input type="text" id="post-excerpt-input" placeholder="Short summary..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold uppercase text-gray-600">Content (Multi-Paragraph HTML / Text)</label>
+                <button type="button" onclick="generateMultiParagraphPost()" class="text-xs font-semibold text-blue-600 hover:text-blue-800">⚡ Generate Multi-Paragraph Post</button>
+              </div>
+              <textarea id="post-content-input" rows="8" required placeholder="Use <p>Paragraph 1</p><p>Paragraph 2</p> for ad placement testing..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:border-gray-900"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Featured Image / Video File Upload</label>
+                <input type="file" id="media-file-input" accept="image/*,video/*" onchange="handleFileUpload(event)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-900 file:text-white hover:file:bg-gray-800">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Media URL (Image or Video MP4)</label>
+                <input type="text" id="post-media-url-input" placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-2">
+              <button type="submit" class="px-5 py-2 bg-gray-900 text-white text-xs font-semibold rounded hover:bg-gray-800 transition">Save Article</button>
+              <button type="button" onclick="resetPostForm()" class="px-4 py-2 border border-gray-300 text-gray-600 text-xs font-semibold rounded hover:bg-gray-50 transition">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Posts Table -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200 text-xs font-semibold uppercase text-gray-500">
+              <tr>
+                <th class="p-4">Title</th>
+                <th class="p-4">Category</th>
+                <th class="p-4">Date</th>
+                <th class="p-4">Likes</th>
+                <th class="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="posts-table-body" class="divide-y divide-gray-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 2: ADS MANAGER (ADS KEEPER / HIGH-CTR PLACEMENTS) -->
+      <div id="tab-ads" class="hidden space-y-6">
+        <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+          <div class="border-b border-gray-100 pb-4">
+            <h2 class="text-xl font-bold text-gray-900">AdsKeeper & High-CTR Placements</h2>
+            <p class="text-xs text-gray-500 mt-1">Configure global ad network scripts and precise article ad slot placements.</p>
+          </div>
+
+          <form onsubmit="saveAdsSettings(event)" class="space-y-5">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Global Header Script (AdsKeeper / Ad Network &lt;head&gt; script)</label>
+              <textarea id="adskeeper-header-script" rows="3" placeholder='<script src="https://jsc.adskeeper.co/..."></script>' class="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:border-gray-900"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">1. Before Title Ad Code</label>
+                <textarea id="ad-slot-before-title" rows="3" placeholder="Ad HTML / JS Code..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:border-gray-900"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">2. Before First Image Ad Code</label>
+                <textarea id="ad-slot-before-image" rows="3" placeholder="Ad HTML / JS Code..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:border-gray-900"></textarea>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">3. Between Paragraphs Ad Code</label>
+              <textarea id="ad-slot-between-paragraphs" rows="3" placeholder="Ad HTML / JS Code for in-article native ads..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:border-gray-900"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Between Paragraphs Frequency Selector</label>
+                <select id="paragraph-ad-interval" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+                  <option value="1">1 to 1 (After every 1 paragraph)</option>
+                  <option value="2">After every 2 paragraphs</option>
+                  <option value="3">After every 3 paragraphs</option>
+                  <option value="0">Disabled</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">4. After Post Ad Code</label>
+                <textarea id="ad-slot-after-post" rows="3" placeholder="Ad HTML / JS Code..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono focus:outline-none focus:border-gray-900"></textarea>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3 border-t border-gray-100 pt-4">
+              <input type="checkbox" id="show-demo-placeholders" class="rounded border-gray-300 text-gray-900 focus:ring-0">
+              <label for="show-demo-placeholders" class="text-xs font-medium text-gray-700">Show visual ad slot preview placeholders when ad code is empty</label>
+            </div>
+
+            <button type="submit" class="px-5 py-2.5 bg-gray-900 text-white text-xs font-semibold rounded hover:bg-gray-800 transition">Save Ads Settings</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB 3: COMMENTS MANAGER -->
+      <div id="tab-comments" class="hidden space-y-6">
+        <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+          <h2 class="text-xl font-bold text-gray-900">User Comments</h2>
+          <div id="comments-admin-list" class="space-y-4">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: SETTINGS & GITHUB SYNC -->
+      <div id="tab-settings" class="hidden space-y-6">
+        <div class="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+          <h2 class="text-xl font-bold text-gray-900">Cloudflare & GitHub Synchronization</h2>
+          <p class="text-xs text-gray-500">Persist your articles and ad configuration directly to your GitHub repository main branch.</p>
+
+          <form onsubmit="saveSyncSettings(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">GitHub Personal Access Token</label>
+              <input type="password" id="gh-token" placeholder="ghp_..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Repo Owner</label>
+                <input type="text" id="gh-owner" value="JoltFeed" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Repo Name</label>
+                <input type="text" id="gh-repo" value="cloudflare-blog-cms" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase text-gray-600 mb-1">Branch</label>
+                <input type="text" id="gh-branch" value="main" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-2">
+              <button type="submit" class="px-5 py-2 bg-gray-900 text-white text-xs font-semibold rounded hover:bg-gray-800 transition">Save Settings</button>
+              <button type="button" onclick="syncToGitHub()" class="px-5 py-2 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition">Sync Data to GitHub</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let posts = [];
+    let config = {
+      globalHeaderScript: "",
+      adSlotBeforeTitle: "",
+      adSlotBeforeImage: "",
+      adSlotBetweenParagraphs: "",
+      paragraphAdInterval: 1,
+      adSlotAfterPost: "",
+      showDemoPlaceholders: true,
+      ghToken: "",
+      ghOwner: "JoltFeed",
+      ghRepo: "cloudflare-blog-cms",
+      ghBranch: "main"
+    };
+
+    function initAdmin() {
+      const isAuth = sessionStorage.getItem('jolt_admin_auth');
+      if (isAuth === 'true') {
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        loadData();
+      } else {
+        document.getElementById('login-container').classList.remove('hidden');
+        document.getElementById('admin-dashboard').classList.add('hidden');
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('login-username').value;
+      const p = document.getElementById('login-password').value;
+      if (u === 'admin' && p === 'admin123') {
+        sessionStorage.setItem('jolt_admin_auth', 'true');
+        initAdmin();
+      } else {
+        const alertBox = document.getElementById('login-alert');
+        alertBox.innerText = 'Invalid username or password.';
+        alertBox.classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem('jolt_admin_auth');
+      initAdmin();
+    }
+
+    function loadData() {
+      // Load config
+      const savedConfig = localStorage.getItem('jolt_config');
+      if (savedConfig) {
+        try { config = Object.assign({}, config, JSON.parse(savedConfig)); } catch(e){}
+      }
+      populateAdsFields();
+
+      // Load posts
+      const savedPosts = localStorage.getItem('jolt_posts');
+      if (savedPosts) {
+        try { posts = JSON.parse(savedPosts); } catch(e){}
+      }
+      
+      fetch('../posts.json')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            posts = data;
+            localStorage.setItem('jolt_posts', JSON.stringify(posts));
+          }
+          renderPostsTable();
+          renderCommentsAdmin();
+        })
+        .catch(() => {
+          renderPostsTable();
+          renderCommentsAdmin();
+        });
+    }
+
+    function switchTab(tab) {
+      const tabs = ['posts', 'ads', 'comments', 'settings'];
+      tabs.forEach(t => {
+        document.getElementById('tab-' + t).classList.add('hidden');
+        const btn = document.getElementById('tab-btn-' + t);
+        btn.classList.remove('border-gray-900', 'text-gray-900', 'font-semibold');
+        btn.classList.add('border-transparent', 'text-gray-500');
+      });
+
+      document.getElementById('tab-' + tab).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-btn-' + tab);
+      activeBtn.classList.remove('border-transparent', 'text-gray-500');
+      activeBtn.classList.add('border-gray-900', 'text-gray-900', 'font-semibold');
+    }
+
+    function renderPostsTable() {
+      const tbody = document.getElementById('posts-table-body');
+      if (!posts || posts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No articles found.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = posts.map(p => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-4 font-semibold text-gray-900">${p.title}</td>
+          <td class="p-4"><span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">${p.category || 'General'}</span></td>
+          <td class="p-4 text-gray-500 text-xs">${p.date || 'Recent'}</td>
+          <td class="p-4 font-bold text-xs">${p.likes || 0}</td>
+          <td class="p-4 text-right space-x-2">
+            <button onclick="editPost('${p.id}')" class="text-xs text-blue-600 hover:underline">Edit</button>
+            <button onclick="deletePost('${p.id}')" class="text-xs text-red-600 hover:underline">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openNewPostForm() {
+      resetPostForm();
+      document.getElementById('post-form-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetPostForm() {
+      document.getElementById('post-id').value = '';
+      document.getElementById('post-title-input').value = '';
+      document.getElementById('post-category-input').value = '';
+      document.getElementById('post-excerpt-input').value = '';
+      document.getElementById('post-content-input').value = '';
+      document.getElementById('post-media-url-input').value = '';
+      document.getElementById('media-file-input').value = '';
+      document.getElementById('form-title').innerText = 'Create New Article';
+    }
+
+    function generateMultiParagraphPost() {
+      document.getElementById('post-title-input').value = "Maximizing High-CTR Ad Placements in Editorial Blogs";
+      document.getElementById('post-category-input').value = "Monetization";
+      document.getElementById('post-excerpt-input').value = "Learn how clean editorial designs and between-paragraph ad placements significantly boost CTR and ad revenue.";
+      document.getElementById('post-content-input').value = 
+`<p>In digital media publishing, finding the right balance between reader experience and effective monetization is essential for long-term growth.</p>
+<p>Clean typography, generous line-height, and distraction-free layouts keep readers engaged longer, driving higher pageviews and scroll depth.</p>
+<p>By placing ad units seamlessly between article paragraphs—such as a 1-to-1 ratio after every paragraph—publishers capture viewer attention right at natural pauses in reading.</p>
+<p>Cloudflare Pages and Workers ensure instant global delivery, while flexible CMS controls allow instant ad tweaking without touching code.</p>`;
+    }
+
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('post-media-url-input').value = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function savePost(e) {
+      e.preventDefault();
+      const id = document.getElementById('post-id').value || ('post-' + Date.now());
+      const title = document.getElementById('post-title-input').value;
+      const category = document.getElementById('post-category-input').value;
+      const excerpt = document.getElementById('post-excerpt-input').value;
+      const content = document.getElementById('post-content-input').value;
+      const mediaUrl = document.getElementById('post-media-url-input').value;
+
+      const newPost = {
+        id: id,
+        title: title,
+        category: category,
+        excerpt: excerpt,
+        content: content,
+        image: mediaUrl && !mediaUrl.endsWith('.mp4') ? mediaUrl : '',
+        video: mediaUrl && mediaUrl.endsWith('.mp4') ? mediaUrl : '',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        author: 'Admin',
+        likes: 0,
+        comments: []
+      };
+
+      const existingIdx = posts.findIndex(p => p.id === id);
+      if (existingIdx !== -1) {
+        posts[existingIdx] = Object.assign(posts[existingIdx], newPost);
+      } else {
+        posts.unshift(newPost);
+      }
+
+      localStorage.setItem('jolt_posts', JSON.stringify(posts));
+      renderPostsTable();
+      resetPostForm();
+      alert('Article saved successfully!');
+    }
+
+    function editPost(id) {
+      const p = posts.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('post-id').value = p.id;
+      document.getElementById('post-title-input').value = p.title || '';
+      document.getElementById('post-category-input').value = p.category || '';
+      document.getElementById('post-excerpt-input').value = p.excerpt || '';
+      document.getElementById('post-content-input').value = p.content || '';
+      document.getElementById('post-media-url-input').value = p.image || p.video || '';
+      document.getElementById('form-title').innerText = 'Edit Article: ' + p.title;
+      document.getElementById('post-form-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function deletePost(id) {
+      if (confirm('Are you sure you want to delete this post?')) {
+        posts = posts.filter(p => p.id !== id);
+        localStorage.setItem('jolt_posts', JSON.stringify(posts));
+        renderPostsTable();
+      }
+    }
+
+    function populateAdsFields() {
+      document.getElementById('adskeeper-header-script').value = config.globalHeaderScript || config.adskeeperHeaderScript || '';
+      document.getElementById('ad-slot-before-title').value = config.adSlotBeforeTitle || '';
+      document.getElementById('ad-slot-before-image').value = config.adSlotBeforeImage || '';
+      document.getElementById('ad-slot-between-paragraphs').value = config.adSlotBetweenParagraphs || '';
+      document.getElementById('paragraph-ad-interval').value = config.paragraphAdInterval !== undefined ? config.paragraphAdInterval : 1;
+      document.getElementById('ad-slot-after-post').value = config.adSlotAfterPost || '';
+      document.getElementById('show-demo-placeholders').checked = config.showDemoPlaceholders !== false;
+
+      // Settings
+      if (config.ghToken) document.getElementById('gh-token').value = config.ghToken;
+      if (config.ghOwner) document.getElementById('gh-owner').value = config.ghOwner;
+      if (config.ghRepo) document.getElementById('gh-repo').value = config.ghRepo;
+      if (config.ghBranch) document.getElementById('gh-branch').value = config.ghBranch;
+    }
+
+    function saveAdsSettings(e) {
+      e.preventDefault();
+      config.globalHeaderScript = document.getElementById('adskeeper-header-script').value;
+      config.adskeeperHeaderScript = config.globalHeaderScript;
+      config.adSlotBeforeTitle = document.getElementById('ad-slot-before-title').value;
+      config.adSlotBeforeImage = document.getElementById('ad-slot-before-image').value;
+      config.adSlotBetweenParagraphs = document.getElementById('ad-slot-between-paragraphs').value;
+      config.paragraphAdInterval = parseInt(document.getElementById('paragraph-ad-interval').value);
+      config.adSlotAfterPost = document.getElementById('ad-slot-after-post').value;
+      config.showDemoPlaceholders = document.getElementById('show-demo-placeholders').checked;
+
+      localStorage.setItem('jolt_config', JSON.stringify(config));
+      alert('AdsKeeper & High-CTR placements saved successfully!');
+    }
+
+    function renderCommentsAdmin() {
+      const container = document.getElementById('comments-admin-list');
+      let allComments = [];
+      posts.forEach(p => {
+        if (p.comments) {
+          p.comments.forEach(c => allComments.push({ postId: p.id, postTitle: p.title, ...c }));
         }
-        function checkSession() {
-            const auth = getAuth();
-            if (auth.isLogged) {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('admin-dashboard').classList.remove('hidden');
-                document.getElementById('current-user-display').innerText = auth.username;
-                document.getElementById('setting-username').value = auth.username;
-                document.getElementById('setting-password').value = auth.password;
-                loadDashboardData();
-            } else {
-                document.getElementById('login-container').classList.remove('hidden');
-                document.getElementById('admin-dashboard').classList.add('hidden');
-            }
-        }
-        function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('login-username').value.trim();
-            const p = document.getElementById('login-password').value.trim();
-            const auth = getAuth();
-            const alertBox = document.getElementById('login-alert');
-            if (u === auth.username && p === auth.password) {
-                auth.isLogged = true;
-                localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
-                alertBox.classList.add('hidden');
-                checkSession();
-            } else {
-                alertBox.innerText = 'Invalid username or password. Default is admin / admin123.';
-                alertBox.classList.remove('hidden');
-            }
-        }
-        function handleLogout() {
-            const auth = getAuth();
-            auth.isLogged = false;
-            localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
-            checkSession();
-        }
-        function saveAuthSettings(e) {
-            e.preventDefault();
-            const u = document.getElementById('setting-username').value.trim();
-            const p = document.getElementById('setting-password').value.trim();
-            if(!u || !p) return alert('Username and password required');
-            const auth = getAuth();
-            auth.username = u;
-            auth.password = p;
-            localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
-            document.getElementById('current-user-display').innerText = u;
-            alert('Admin credentials updated successfully!');
-        }
-        function saveGithubSync(e) {
-            e.preventDefault();
-            alert('GitHub sync settings saved.');
-        }
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-amber-500', 'text-amber-600');
-                btn.classList.add('border-transparent', 'text-slate-500');
-            });
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
-            activeBtn.classList.remove('border-transparent', 'text-slate-500');
-            activeBtn.classList.add('border-amber-500', 'text-amber-600');
-        }
-        function handleFileUpload(event, type) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (type === 'image') {
-                    base64Photo = e.target.result;
-                    document.getElementById('image-preview').src = base64Photo;
-                    document.getElementById('image-preview-box').classList.remove('hidden');
-                } else if (type === 'video') {
-                    base64Video = e.target.result;
-                    document.getElementById('video-preview').src = base64Video;
-                    document.getElementById('video-preview-box').classList.remove('hidden');
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-        function generatePostContent() {
-            const title = document.getElementById('post-title').value.trim() || "The Future of Digital Innovation";
-            const cat = document.getElementById('post-category').value;
-            document.getElementById('post-title').value = title;
-            document.getElementById('post-excerpt').value = `An inside look into ${title.toLowerCase()} and how ${cat.toLowerCase()} is shaping the future of web technology and digital media.`;
-            document.getElementById('post-content').value = `<p>In today's fast-paced digital ecosystem, <strong>${title}</strong> represents a monumental step forward in how we experience ${cat}. As technological advancements continue to accelerate, staying ahead of trends requires both strategic foresight and cutting-edge tools.</p><h3>Key Insights & Highlights</h3><p>Modern platforms demand high reliability, seamless content distribution, and user-centric features. By leveraging innovative architectures, creators and developers can deliver richer media, interactive discussion tools, and lightning-fast loading speeds.</p><p>As we look toward the next horizon, integrating intelligent workflows, direct video streaming, and community engagement remains central to sustainable digital growth.</p>`;
-            document.getElementById('post-tags').value = `${cat}, Innovation, Trends, Digital`;
-            if(!document.getElementById('post-image-url').value && !base64Photo) {
-                document.getElementById('post-image-url').value = "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80";
-                document.getElementById('image-preview').src = document.getElementById('post-image-url').value;
-                document.getElementById('image-preview-box').classList.remove('hidden');
-            }
-            alert('Multi-paragraph blog post, excerpt, tags, and image generated successfully!');
-        }
-        async function fetchPosts() {
-            let localPosts = [];
-            const stored = localStorage.getItem(POSTS_KEY);
-            if (stored) {
-                try { localPosts = JSON.parse(stored); } catch(e){}
-            }
-            try {
-                const res = await fetch('../posts.json');
-                if(res.ok) {
-                    const jsonPosts = await res.json();
-                    const ids = new Set(localPosts.map(p => p.id));
-                    jsonPosts.forEach(jp => {
-                        if(!ids.has(jp.id)) localPosts.push(jp);
-                    });
-                }
-            } catch(e) {}
-            localStorage.setItem(POSTS_KEY, JSON.stringify(localPosts));
-            return localPosts;
-        }
-        async function loadDashboardData() {
-            const posts = await fetchPosts();
-            renderPostsTable(posts);
-            let allComments = [];
-            posts.forEach(p => {
-                if(p.comments && Array.isArray(p.comments)) {
-                    p.comments.forEach(c => allComments.push({...c, postTitle: p.title, postId: p.id}));
-                }
-            });
-            document.getElementById('comments-count-badge').innerText = allComments.length;
-            renderCommentsList(allComments);
-        }
-        function renderPostsTable(posts) {
-            document.getElementById('posts-count').innerText = posts.length;
-            const tbody = document.getElementById('admin-posts-table');
-            if(posts.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">No posts found. Create your first post above!</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = posts.map(p => {
-                const mediaThumb = p.image ? `<img src="${p.image}" class="w-12 h-12 object-cover rounded-lg border">` :
-                                   p.video ? `<div class="w-12 h-12 bg-slate-800 text-amber-400 flex items-center justify-center rounded-lg">🎥</div>` :
-                                   `<div class="w-12 h-12 bg-slate-100 flex items-center justify-center rounded-lg text-slate-400">📰</div>`;
-                const cCount = p.comments ? p.comments.length : 0;
-                const likes = p.likes || 0;
-                return `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50">
-                        <td class="p-3">${mediaThumb}</td>
-                        <td class="p-3 font-semibold text-slate-900">${p.title}</td>
-                        <td class="p-3"><span class="px-2 py-1 text-xs bg-amber-100 text-amber-800 font-medium rounded-full">${p.category || 'General'}</span></td>
-                        <td class="p-3 text-xs text-slate-500">${p.date || 'Today'}</td>
-                        <td class="p-3 text-xs text-slate-600">❤️ ${likes} &nbsp; 💬 ${cCount}</td>
-                        <td class="p-3 text-right space-x-2">
-                            <button onclick="editPost('${p.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg">✏️ Edit</button>
-                            <button onclick="deletePost('${p.id}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1.5 rounded-lg">🗑️ Delete</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-        function savePost(e) {
-            e.preventDefault();
-            const id = document.getElementById('post-id').value || 'post_' + Date.now();
-            const title = document.getElementById('post-title').value.trim();
-            const category = document.getElementById('post-category').value;
-            const excerpt = document.getElementById('post-excerpt').value.trim();
-            const content = document.getElementById('post-content').value.trim();
-            const tags = document.getElementById('post-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-            const imageUrl = base64Photo || document.getElementById('post-image-url').value.trim();
-            const videoUrl = base64Video || document.getElementById('post-video-url').value.trim();
-            const posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
-            const existingIndex = posts.findIndex(p => p.id === id);
-            const postObj = {
-                id,
-                title,
-                category,
-                excerpt,
-                content,
-                tags,
-                image: imageUrl,
-                video: videoUrl,
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                author: 'Admin',
-                likes: existingIndex >= 0 ? (posts[existingIndex].likes || 0) : 0,
-                comments: existingIndex >= 0 ? (posts[existingIndex].comments || []) : []
-            };
-            if (existingIndex >= 0) {
-                posts[existingIndex] = postObj;
-            } else {
-                posts.unshift(postObj);
-            }
-            localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-            alert('Post published successfully!');
-            resetPostForm();
-            loadDashboardData();
-        }
-        function editPost(id) {
-            const posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
-            const p = posts.find(item => item.id === id);
-            if (!p) return;
-            document.getElementById('post-id').value = p.id;
-            document.getElementById('post-title').value = p.title;
-            document.getElementById('post-category').value = p.category || 'General';
-            document.getElementById('post-excerpt').value = p.excerpt || '';
-            document.getElementById('post-content').value = p.content || '';
-            document.getElementById('post-tags').value = (p.tags || []).join(', ');
-            if(p.image) {
-                document.getElementById('post-image-url').value = p.image.startsWith('data:') ? '' : p.image;
-                document.getElementById('image-preview').src = p.image;
-                document.getElementById('image-preview-box').classList.remove('hidden');
-            }
-            if(p.video) {
-                document.getElementById('post-video-url').value = p.video.startsWith('data:') ? '' : p.video;
-                document.getElementById('video-preview').src = p.video;
-                document.getElementById('video-preview-box').classList.remove('hidden');
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        function deletePost(id) {
-            if (!confirm('Are you sure you want to delete this post?')) return;
-            let posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
-            posts = posts.filter(p => p.id !== id);
-            localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-            loadDashboardData();
-        }
-        function resetPostForm() {
-            document.getElementById('post-form').reset();
-            document.getElementById('post-id').value = '';
-            base64Photo = '';
-            base64Video = '';
-            document.getElementById('image-preview-box').classList.add('hidden');
-            document.getElementById('video-preview-box').classList.add('hidden');
-        }
-        function renderCommentsList(comments) {
-            const container = document.getElementById('admin-comments-list');
-            if(comments.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-sm">No visitor comments yet.</p>`;
-                return;
-            }
-            container.innerHTML = comments.map(c => `
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-start">
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-bold text-sm text-slate-900">${c.name || 'Anonymous'}</span>
-                            <span class="text-xs text-slate-400">• ${c.date || 'Recent'}</span>
-                            <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-medium">Post: ${c.postTitle}</span>
-                        </div>
-                        <p class="text-sm text-slate-700">${c.text}</p>
-                    </div>
-                    <button onclick="deleteComment('${c.postId}', '${c.id}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">
-                        🗑️ Delete
-                    </button>
-                </div>
-            `).join('');
-        }
-        function deleteComment(postId, commentId) {
-            let posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
-            const postIndex = posts.findIndex(p => p.id === postId);
-            if (postIndex >= 0 && posts[postIndex].comments) {
-                posts[postIndex].comments = posts[postIndex].comments.filter(c => c.id !== commentId);
-                localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-                loadDashboardData();
-            }
-        }
-        function saveAdsConfig(e) {
-            e.preventDefault();
-            const ads = {
-                header: { enable: document.getElementById('ad-header-enable').checked, code: document.getElementById('ad-header-code').value },
-                article: { enable: document.getElementById('ad-article-enable').checked, code: document.getElementById('ad-article-code').value },
-                sidebar: { enable: document.getElementById('ad-sidebar-enable').checked, code: document.getElementById('ad-sidebar-code').value }
-            };
-            localStorage.setItem(ADS_KEY, JSON.stringify(ads));
-            alert('AdsKeeper settings saved!');
-        }
-        checkSession();
-    </script>
+      });
+
+      if (allComments.length === 0) {
+        container.innerHTML = `<p class="text-sm text-gray-500 italic">No user comments found.</p>`;
+        return;
+      }
+
+      container.innerHTML = allComments.map(c => `
+        <div class="border-b border-gray-100 pb-3 flex items-start justify-between gap-4">
+          <div>
+            <div class="text-xs text-gray-500 mb-1">
+              <span class="font-bold text-gray-900">${c.name}</span> on <span class="font-semibold text-gray-800">"${c.postTitle}"</span> (${c.date || 'Recent'})
+            </div>
+            <p class="text-sm text-gray-700">${c.text}</p>
+          </div>
+          <button onclick="deleteComment('${c.postId}', '${c.id}')" class="text-xs text-red-600 hover:underline">Delete</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteComment(postId, commentId) {
+      const p = posts.find(item => item.id === postId);
+      if (p && p.comments) {
+        p.comments = p.comments.filter(c => c.id !== commentId);
+        localStorage.setItem('jolt_posts', JSON.stringify(posts));
+        renderCommentsAdmin();
+      }
+    }
+
+    function saveSyncSettings(e) {
+      e.preventDefault();
+      config.ghToken = document.getElementById('gh-token').value;
+      config.ghOwner = document.getElementById('gh-owner').value;
+      config.ghRepo = document.getElementById('gh-repo').value;
+      config.ghBranch = document.getElementById('gh-branch').value;
+      localStorage.setItem('jolt_config', JSON.stringify(config));
+      alert('GitHub synchronization settings saved!');
+    }
+
+    function syncToGitHub() {
+      alert('To push posts.json & config.json automatically to GitHub, provide a GitHub Personal Access Token in Settings.');
+    }
+
+    window.onload = initAdmin;
+  </script>
 </body>
 </html>
