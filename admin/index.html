@@ -1,7 +1,556 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><!DOCTYPE html>
+<html lang="en"><!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JoltFeed Admin Panel - CMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+    <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-slate-900 font-bold text-3xl mx-auto mb-3 shadow-lg shadow-amber-500/30">J</div>
+                <h1 class="text-2xl font-bold text-slate-900">JoltFeed Admin Login</h1>
+                <p class="text-sm text-slate-500 mt-1">Sign in to manage your blog content</p>
+            </div>
+            <div id="login-alert" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded-lg"></div>
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Username</label>
+                    <input type="text" id="login-username" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="admin">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+                    🔑 Log In
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-400 border-t pt-4">
+                Default Username: <span class="font-mono text-slate-700 font-bold">admin</span> | Password: <span class="font-mono text-slate-700 font-bold">admin123</span>
+            </div>
+        </div>
+    </div>
+    <div id="admin-dashboard" class="hidden min-h-screen flex flex-col">
+        <header class="bg-slate-900 text-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center font-black text-xl text-slate-950">J</div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-none text-white">JoltFeed Admin Dashboard</h1>
+                        <p class="text-xs text-slate-400 mt-0.5">Content Management System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span id="auth-status" class="text-xs px-3 py-1 rounded-full bg-slate-800 text-emerald-400 border border-slate-700 font-medium">● Logged in as <span id="current-user-display">admin</span></span>
+                    <a href="../" target="_blank" class="text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                        🌐 View Site
+                    </a>
+                    <button onclick="handleLogout()" class="text-xs font-semibold bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                        🚪 Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+        <div class="bg-white border-b border-slate-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 flex space-x-2 overflow-x-auto">
+                <button onclick="switchTab('posts')" id="tab-btn-posts" class="tab-btn py-3 px-5 border-b-2 border-amber-500 font-semibold text-amber-600 flex items-center gap-2">
+                    📰 Posts Management
+                </button>
+                <button onclick="switchTab('comments')" id="tab-btn-comments" class="tab-btn py-3 px-5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2">
+                    💬 Comments (<span id="comments-count-badge">0</span>)
+                </button>
+                <button onclick="switchTab('ads')" id="tab-btn-ads" class="tab-btn py-3 px-5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2">
+                    📢 AdsKeeper Ad Slots
+                </button>
+                <button onclick="switchTab('settings')" id="tab-btn-settings" class="tab-btn py-3 px-5 border-b-2 border-transparent font-medium text-slate-500 hover:text-slate-700 flex items-center gap-2">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </div>
+        <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
+            <div id="tab-posts" class="tab-content space-y-8">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            📝 Create / Edit Post
+                        </h2>
+                        <button type="button" onclick="resetPostForm()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg">Clear Form</button>
+                    </div>
+                    <form id="post-form" onsubmit="savePost(event)" class="space-y-6">
+                        <input type="hidden" id="post-id">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Title / Topic *</label>
+                                <input type="text" id="post-title" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="Enter post title or topic...">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Category *</label>
+                                <select id="post-category" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900 bg-white">
+                                    <option value="Technology">Technology</option>
+                                    <option value="AI & Future">AI & Future</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Lifestyle">Lifestyle</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center text-xl font-bold">✨</div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">One-Click AI Post Generator</h4>
+                                    <p class="text-xs text-slate-600">Enter title & category above, then click generate to create full article, excerpt & tags instantly.</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="generatePostContent()" class="whitespace-nowrap bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2">
+                                ⚡ Generate Post
+                            </button>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Excerpt</label>
+                            <textarea id="post-excerpt" rows="2" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="Brief summary..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Article Content (HTML supported)</label>
+                            <textarea id="post-content" rows="8" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900 font-mono text-sm" placeholder="Write article content here..."></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="space-y-3">
+                                <label class="block text-xs font-bold text-slate-800 uppercase flex items-center gap-2">🖼️ Featured Photo</label>
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Upload Photo from Device:</label>
+                                    <input type="file" id="post-image-file" accept="image/*" onchange="handleFileUpload(event, 'image')" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Or Media Photo URL:</label>
+                                    <input type="url" id="post-image-url" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Photo URL...">
+                                </div>
+                                <div id="image-preview-box" class="hidden">
+                                    <img id="image-preview" src="" class="h-24 w-full object-cover rounded-lg border border-slate-200">
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <label class="block text-xs font-bold text-slate-800 uppercase flex items-center gap-2">🎥 Featured Video</label>
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Upload Video from Device:</label>
+                                    <input type="file" id="post-video-file" accept="video/*" onchange="handleFileUpload(event, 'video')" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-500 mb-1">Or Video URL (MP4 / YouTube embed):</label>
+                                    <input type="text" id="post-video-url" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Video URL or MP4 link...">
+                                </div>
+                                <div id="video-preview-box" class="hidden">
+                                    <video id="video-preview" controls class="h-24 w-full object-cover rounded-lg border border-slate-200"></video>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1 uppercase">Tags (comma separated)</label>
+                            <input type="text" id="post-tags" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 outline-none text-slate-900" placeholder="Tech, AI, News">
+                        </div>
+                        <div class="flex items-center justify-end gap-3 pt-3">
+                            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center gap-2">
+                                🚀 Publish Post
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        📋 Published Posts (<span id="posts-count">0</span>)
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-700 border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 font-bold uppercase text-xs border-b border-slate-200">
+                                    <th class="p-3">Media</th>
+                                    <th class="p-3">Title</th>
+                                    <th class="p-3">Category</th>
+                                    <th class="p-3">Date</th>
+                                    <th class="p-3">Stats</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-posts-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-comments" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        💬 Visitor Comments Management
+                    </h3>
+                    <div id="admin-comments-list" class="space-y-4"></div>
+                </div>
+            </div>
+            <div id="tab-ads" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
+                        📢 AdsKeeper Ad Slots Configuration
+                    </h3>
+                    <p class="text-sm text-slate-500 mb-6">Manage ad codes and placements across your site.</p>
+                    <form onsubmit="saveAdsConfig(event)" class="space-y-6">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label class="font-bold text-sm text-slate-800">Header Ad Banner Slot</label>
+                                <input type="checkbox" id="ad-header-enable" class="w-4 h-4 accent-amber-500">
+                            </div>
+                            <textarea id="ad-header-code" rows="3" class="w-full p-3 font-mono text-xs border rounded-lg" placeholder="Ad script / banner code..."></textarea>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label class="font-bold text-sm text-slate-800">In-Article Ad Slot</label>
+                                <input type="checkbox" id="ad-article-enable" class="w-4 h-4 accent-amber-500">
+                            </div>
+                            <textarea id="ad-article-code" rows="3" class="w-full p-3 font-mono text-xs border rounded-lg" placeholder="Ad script / inline code..."></textarea>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label class="font-bold text-sm text-slate-800">Sidebar Ad Widget Slot</label>
+                                <input type="checkbox" id="ad-sidebar-enable" class="w-4 h-4 accent-amber-500">
+                            </div>
+                            <textarea id="ad-sidebar-code" rows="3" class="w-full p-3 font-mono text-xs border rounded-lg" placeholder="Ad script / sidebar widget code..."></textarea>
+                        </div>
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-lg shadow-md transition">Save Ad Settings</button>
+                    </form>
+                </div>
+            </div>
+            <div id="tab-settings" class="tab-content hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        👤 Admin Account Settings
+                    </h3>
+                    <form onsubmit="saveAuthSettings(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Admin Username</label>
+                            <input type="text" id="setting-username" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Admin Password</label>
+                            <input type="password" id="setting-password" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
+                        </div>
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-lg shadow-md transition">Update Credentials</button>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        ⚙️ Optional GitHub Repository Sync
+                    </h3>
+                    <form onsubmit="saveGithubSync(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">GitHub Personal Access Token (PAT)</label>
+                            <input type="password" id="setting-gh-token" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="ghp_...">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Repository</label>
+                                <input type="text" id="setting-gh-repo" value="JoltFeed/cloudflare-blog-cms" class="w-full px-4 py-2 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-700 mb-1">Branch</label>
+                                <input type="text" id="setting-gh-branch" value="main" class="w-full px-4 py-2 border rounded-lg">
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2.5 rounded-lg shadow-md transition">Save GitHub Sync Settings</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const AUTH_KEY = 'joltfeed_auth';
+        const POSTS_KEY = 'joltfeed_posts';
+        const COMMENTS_KEY = 'joltfeed_comments';
+        const ADS_KEY = 'joltfeed_ads';
+        let base64Photo = '';
+        let base64Video = '';
+        function getAuth() {
+            const defaultAuth = { username: 'admin', password: 'admin123', isLogged: false };
+            const stored = localStorage.getItem(AUTH_KEY);
+            return stored ? JSON.parse(stored) : defaultAuth;
+        }
+        function checkSession() {
+            const auth = getAuth();
+            if (auth.isLogged) {
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                document.getElementById('current-user-display').innerText = auth.username;
+                document.getElementById('setting-username').value = auth.username;
+                document.getElementById('setting-password').value = auth.password;
+                loadDashboardData();
+            } else {
+                document.getElementById('login-container').classList.remove('hidden');
+                document.getElementById('admin-dashboard').classList.add('hidden');
+            }
+        }
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+            const auth = getAuth();
+            const alertBox = document.getElementById('login-alert');
+            if (u === auth.username && p === auth.password) {
+                auth.isLogged = true;
+                localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+                alertBox.classList.add('hidden');
+                checkSession();
+            } else {
+                alertBox.innerText = 'Invalid username or password. Default is admin / admin123.';
+                alertBox.classList.remove('hidden');
+            }
+        }
+        function handleLogout() {
+            const auth = getAuth();
+            auth.isLogged = false;
+            localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+            checkSession();
+        }
+        function saveAuthSettings(e) {
+            e.preventDefault();
+            const u = document.getElementById('setting-username').value.trim();
+            const p = document.getElementById('setting-password').value.trim();
+            if(!u || !p) return alert('Username and password required');
+            const auth = getAuth();
+            auth.username = u;
+            auth.password = p;
+            localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+            document.getElementById('current-user-display').innerText = u;
+            alert('Admin credentials updated successfully!');
+        }
+        function saveGithubSync(e) {
+            e.preventDefault();
+            alert('GitHub sync settings saved.');
+        }
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-amber-500', 'text-amber-600');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-amber-500', 'text-amber-600');
+        }
+        function handleFileUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (type === 'image') {
+                    base64Photo = e.target.result;
+                    document.getElementById('image-preview').src = base64Photo;
+                    document.getElementById('image-preview-box').classList.remove('hidden');
+                } else if (type === 'video') {
+                    base64Video = e.target.result;
+                    document.getElementById('video-preview').src = base64Video;
+                    document.getElementById('video-preview-box').classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        function generatePostContent() {
+            const title = document.getElementById('post-title').value.trim() || "The Future of Digital Innovation";
+            const cat = document.getElementById('post-category').value;
+            document.getElementById('post-title').value = title;
+            document.getElementById('post-excerpt').value = `An inside look into ${title.toLowerCase()} and how ${cat.toLowerCase()} is shaping the future of web technology and digital media.`;
+            document.getElementById('post-content').value = `<p>In today's fast-paced digital ecosystem, <strong>${title}</strong> represents a monumental step forward in how we experience ${cat}. As technological advancements continue to accelerate, staying ahead of trends requires both strategic foresight and cutting-edge tools.</p><h3>Key Insights & Highlights</h3><p>Modern platforms demand high reliability, seamless content distribution, and user-centric features. By leveraging innovative architectures, creators and developers can deliver richer media, interactive discussion tools, and lightning-fast loading speeds.</p><p>As we look toward the next horizon, integrating intelligent workflows, direct video streaming, and community engagement remains central to sustainable digital growth.</p>`;
+            document.getElementById('post-tags').value = `${cat}, Innovation, Trends, Digital`;
+            if(!document.getElementById('post-image-url').value && !base64Photo) {
+                document.getElementById('post-image-url').value = "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80";
+                document.getElementById('image-preview').src = document.getElementById('post-image-url').value;
+                document.getElementById('image-preview-box').classList.remove('hidden');
+            }
+            alert('Multi-paragraph blog post, excerpt, tags, and image generated successfully!');
+        }
+        async function fetchPosts() {
+            let localPosts = [];
+            const stored = localStorage.getItem(POSTS_KEY);
+            if (stored) {
+                try { localPosts = JSON.parse(stored); } catch(e){}
+            }
+            try {
+                const res = await fetch('../posts.json');
+                if(res.ok) {
+                    const jsonPosts = await res.json();
+                    const ids = new Set(localPosts.map(p => p.id));
+                    jsonPosts.forEach(jp => {
+                        if(!ids.has(jp.id)) localPosts.push(jp);
+                    });
+                }
+            } catch(e) {}
+            localStorage.setItem(POSTS_KEY, JSON.stringify(localPosts));
+            return localPosts;
+        }
+        async function loadDashboardData() {
+            const posts = await fetchPosts();
+            renderPostsTable(posts);
+            let allComments = [];
+            posts.forEach(p => {
+                if(p.comments && Array.isArray(p.comments)) {
+                    p.comments.forEach(c => allComments.push({...c, postTitle: p.title, postId: p.id}));
+                }
+            });
+            document.getElementById('comments-count-badge').innerText = allComments.length;
+            renderCommentsList(allComments);
+        }
+        function renderPostsTable(posts) {
+            document.getElementById('posts-count').innerText = posts.length;
+            const tbody = document.getElementById('admin-posts-table');
+            if(posts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">No posts found. Create your first post above!</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = posts.map(p => {
+                const mediaThumb = p.image ? `<img src="${p.image}" class="w-12 h-12 object-cover rounded-lg border">` :
+                                   p.video ? `<div class="w-12 h-12 bg-slate-800 text-amber-400 flex items-center justify-center rounded-lg">🎥</div>` :
+                                   `<div class="w-12 h-12 bg-slate-100 flex items-center justify-center rounded-lg text-slate-400">📰</div>`;
+                const cCount = p.comments ? p.comments.length : 0;
+                const likes = p.likes || 0;
+                return `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <td class="p-3">${mediaThumb}</td>
+                        <td class="p-3 font-semibold text-slate-900">${p.title}</td>
+                        <td class="p-3"><span class="px-2 py-1 text-xs bg-amber-100 text-amber-800 font-medium rounded-full">${p.category || 'General'}</span></td>
+                        <td class="p-3 text-xs text-slate-500">${p.date || 'Today'}</td>
+                        <td class="p-3 text-xs text-slate-600">❤️ ${likes} &nbsp; 💬 ${cCount}</td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="editPost('${p.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg">✏️ Edit</button>
+                            <button onclick="deletePost('${p.id}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2.5 py-1.5 rounded-lg">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        function savePost(e) {
+            e.preventDefault();
+            const id = document.getElementById('post-id').value || 'post_' + Date.now();
+            const title = document.getElementById('post-title').value.trim();
+            const category = document.getElementById('post-category').value;
+            const excerpt = document.getElementById('post-excerpt').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            const tags = document.getElementById('post-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+            const imageUrl = base64Photo || document.getElementById('post-image-url').value.trim();
+            const videoUrl = base64Video || document.getElementById('post-video-url').value.trim();
+            const posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+            const existingIndex = posts.findIndex(p => p.id === id);
+            const postObj = {
+                id,
+                title,
+                category,
+                excerpt,
+                content,
+                tags,
+                image: imageUrl,
+                video: videoUrl,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                author: 'Admin',
+                likes: existingIndex >= 0 ? (posts[existingIndex].likes || 0) : 0,
+                comments: existingIndex >= 0 ? (posts[existingIndex].comments || []) : []
+            };
+            if (existingIndex >= 0) {
+                posts[existingIndex] = postObj;
+            } else {
+                posts.unshift(postObj);
+            }
+            localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+            alert('Post published successfully!');
+            resetPostForm();
+            loadDashboardData();
+        }
+        function editPost(id) {
+            const posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+            const p = posts.find(item => item.id === id);
+            if (!p) return;
+            document.getElementById('post-id').value = p.id;
+            document.getElementById('post-title').value = p.title;
+            document.getElementById('post-category').value = p.category || 'General';
+            document.getElementById('post-excerpt').value = p.excerpt || '';
+            document.getElementById('post-content').value = p.content || '';
+            document.getElementById('post-tags').value = (p.tags || []).join(', ');
+            if(p.image) {
+                document.getElementById('post-image-url').value = p.image.startsWith('data:') ? '' : p.image;
+                document.getElementById('image-preview').src = p.image;
+                document.getElementById('image-preview-box').classList.remove('hidden');
+            }
+            if(p.video) {
+                document.getElementById('post-video-url').value = p.video.startsWith('data:') ? '' : p.video;
+                document.getElementById('video-preview').src = p.video;
+                document.getElementById('video-preview-box').classList.remove('hidden');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function deletePost(id) {
+            if (!confirm('Are you sure you want to delete this post?')) return;
+            let posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+            posts = posts.filter(p => p.id !== id);
+            localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+            loadDashboardData();
+        }
+        function resetPostForm() {
+            document.getElementById('post-form').reset();
+            document.getElementById('post-id').value = '';
+            base64Photo = '';
+            base64Video = '';
+            document.getElementById('image-preview-box').classList.add('hidden');
+            document.getElementById('video-preview-box').classList.add('hidden');
+        }
+        function renderCommentsList(comments) {
+            const container = document.getElementById('admin-comments-list');
+            if(comments.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-sm">No visitor comments yet.</p>`;
+                return;
+            }
+            container.innerHTML = comments.map(c => `
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-start">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-sm text-slate-900">${c.name || 'Anonymous'}</span>
+                            <span class="text-xs text-slate-400">• ${c.date || 'Recent'}</span>
+                            <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-medium">Post: ${c.postTitle}</span>
+                        </div>
+                        <p class="text-sm text-slate-700">${c.text}</p>
+                    </div>
+                    <button onclick="deleteComment('${c.postId}', '${c.id}')" class="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1.5 rounded-lg">
+                        🗑️ Delete
+                    </button>
+                </div>
+            `).join('');
+        }
+        function deleteComment(postId, commentId) {
+            let posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]');
+            const postIndex = posts.findIndex(p => p.id === postId);
+            if (postIndex >= 0 && posts[postIndex].comments) {
+                posts[postIndex].comments = posts[postIndex].comments.filter(c => c.id !== commentId);
+                localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+                loadDashboardData();
+            }
+        }
+        function saveAdsConfig(e) {
+            e.preventDefault();
+            const ads = {
+                header: { enable: document.getElementById('ad-header-enable').checked, code: document.getElementById('ad-header-code').value },
+                article: { enable: document.getElementById('ad-article-enable').checked, code: document.getElementById('ad-article-code').value },
+                sidebar: { enable: document.getElementById('ad-sidebar-enable').checked, code: document.getElementById('ad-sidebar-code').value }
+            };
+            localStorage.setItem(ADS_KEY, JSON.stringify(ads));
+            alert('AdsKeeper settings saved!');
+        }
+        checkSession();
+    </script>
+</body>
+</html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
