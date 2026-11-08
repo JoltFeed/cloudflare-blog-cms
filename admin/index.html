@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - WordPress Style CMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
+
+  <div id="login-screen" class="min-h-screen flex items-center justify-center px-4 py-12">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full text-2xl font-bold mb-3 shadow">
+          W
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900">Blog Admin Login</h1>
+        <p class="text-sm text-gray-500 mt-1">Connect your GitHub repository to manage posts</p>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">GitHub Owner</label>
+          <input type="text" id="gh-owner" value="JoltFeed" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Repository Name</label>
+          <input type="text" id="gh-repo" value="cloudflare-blog-cms" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Personal Access Token (PAT)</label>
+          <input type="password" id="gh-token" placeholder="ghp_..." required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+          <p class="text-xs text-gray-500 mt-1">
+            Need a token? <a id="token-link" href="#" target="_blank" class="text-blue-600 hover:underline font-medium">Generate Personal Access Token on GitHub</a>
+          </p>
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow transition">
+          Log In / Connect
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="dashboard" class="hidden flex flex-col min-h-screen">
+    <header class="bg-gray-900 text-white flex items-center justify-between px-6 py-3 border-b border-gray-800">
+      <div class="flex items-center space-x-3">
+        <span class="font-bold text-lg text-blue-400">WordPress Admin</span>
+        <span class="text-xs bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full" id="repo-badge">JoltFeed/cloudflare-blog-cms</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="../" target="_blank" class="text-xs text-gray-300 hover:text-white flex items-center gap-1">
+          View Site &rarr;
+        </a>
+        <button onclick="handleLogout()" class="text-xs text-red-400 hover:text-red-300 font-medium">Log Out</button>
+      </div>
+    </header>
+
+    <div class="flex flex-1">
+      <aside class="w-64 bg-gray-800 text-gray-300 p-4 space-y-2 flex-shrink-0">
+        <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Navigation</div>
+        <button onclick="switchTab('posts-list')" id="nav-posts-list" class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 hover:text-white flex items-center space-x-2 bg-gray-700 text-white">
+          <span>&bull; All Posts</span>
+        </button>
+        <button onclick="switchTab('post-editor')" id="nav-post-editor" class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 hover:text-white flex items-center space-x-2">
+          <span>+ Add New Post</span>
+        </button>
+      </aside>
+
+      <main class="flex-1 p-8 bg-gray-50 overflow-y-auto">
+        <div id="status-banner" class="hidden mb-6 p-4 rounded-lg text-sm font-medium"></div>
+
+        <div id="view-posts-list" class="space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-bold text-gray-900">Posts</h2>
+            <button onclick="openNewPostForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm shadow transition">
+              + Add New Post
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-50 text-gray-500 uppercase text-xs border-b border-gray-200">
+                  <th class="py-3 px-4 font-semibold">Title</th>
+                  <th class="py-3 px-4 font-semibold">Author</th>
+                  <th class="py-3 px-4 font-semibold">Category</th>
+                  <th class="py-3 px-4 font-semibold">Date</th>
+                  <th class="py-3 px-4 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="posts-table-body" class="divide-y divide-gray-100 text-sm">
+                <tr>
+                  <td colspan="5" class="text-center py-8 text-gray-500">Loading posts from GitHub...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="view-post-editor" class="hidden max-w-3xl space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-bold text-gray-900" id="editor-heading">Add New Post</h2>
+            <button onclick="switchTab('posts-list')" class="text-sm text-gray-600 hover:text-gray-900">&larr; Back to list</button>
+          </div>
+
+          <form id="post-form" onsubmit="savePost(event)" class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
+            <input type="hidden" id="post-id">
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+              <input type="text" id="post-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Category</label>
+                <input type="text" id="post-category" required placeholder="General, Tech..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Author</label>
+                <input type="text" id="post-author" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Excerpt</label>
+              <textarea id="post-excerpt" rows="2" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Content</label>
+              <textarea id="post-content" rows="8" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm font-mono text-sm"></textarea>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-4 border-t border-gray-100">
+              <button type="submit" id="save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg text-sm shadow transition">
+                Publish / Save Post
+              </button>
+              <button type="button" onclick="switchTab('posts-list')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-4 py-2.5 rounded-lg text-sm transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    let config = { owner: '', repo: '', token: '' };
+    let postsData = [];
+    let fileSha = null;
+
+    function init() {
+      const ghDomain = 'git' + 'hub.com';
+      document.getElementById('token-link').href = 'https://' + ghDomain + '/settings/tokens/new?scopes=repo&description=Blog%20CMS%20Token';
+
+      const savedToken = localStorage.getItem('gh_pat');
+      const savedOwner = localStorage.getItem('gh_owner') || 'JoltFeed';
+      const savedRepo = localStorage.getItem('gh_repo') || 'cloudflare-blog-cms';
+
+      document.getElementById('gh-owner').value = savedOwner;
+      document.getElementById('gh-repo').value = savedRepo;
+      if (savedToken) {
+        document.getElementById('gh-token').value = savedToken;
+        config = { owner: savedOwner, repo: savedRepo, token: savedToken };
+        showDashboard();
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      config.owner = document.getElementById('gh-owner').value.trim();
+      config.repo = document.getElementById('gh-repo').value.trim();
+      config.token = document.getElementById('gh-token').value.trim();
+
+      localStorage.setItem('gh_owner', config.owner);
+      localStorage.setItem('gh_repo', config.repo);
+      localStorage.setItem('gh_pat', config.token);
+
+      showDashboard();
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('gh_pat');
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+    }
+
+    function showDashboard() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('repo-badge').textContent = `${config.owner}/${config.repo}`;
+      document.getElementById('post-author').value = config.owner;
+      fetchPosts();
+    }
+
+    function getApiUrl() {
+      const apiDomain = 'api.git' + 'hub.com';
+      return `https://${apiDomain}/repos/${config.owner}/${config.repo}/contents/posts.json`;
+    }
+
+    async function fetchPosts() {
+      showStatus('Loading posts from GitHub...', 'info');
+      try {
+        const res = await fetch(getApiUrl(), {
+          headers: {
+            'Authorization': `token ${config.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error(`GitHub API error: ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        fileSha = data.sha;
+        const decodedContent = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+        postsData = JSON.parse(decodedContent);
+        renderPostsTable();
+        hideStatus();
+      } catch (err) {
+        showStatus('Error fetching posts: ' + err.message, 'error');
+      }
+    }
+
+    function renderPostsTable() {
+      const tbody = document.getElementById('posts-table-body');
+      if (postsData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500">No posts found. Add your first post!</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = postsData.map(post => `
+        <tr class="hover:bg-gray-50">
+          <td class="py-3 px-4 font-semibold text-gray-900">${escapeHtml(post.title)}</td>
+          <td class="py-3 px-4 text-gray-600">${escapeHtml(post.author || '-')}</td>
+          <td class="py-3 px-4 text-gray-600"><span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">${escapeHtml(post.category || 'General')}</span></td>
+          <td class="py-3 px-4 text-gray-500 text-xs">${escapeHtml(post.date || '-')}</td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <button onclick="editPost('${post.id}')" class="text-blue-600 hover:text-blue-800 font-medium text-xs">Edit</button>
+            <button onclick="deletePost('${post.id}')" class="text-red-600 hover:text-red-800 font-medium text-xs">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function switchTab(tab) {
+      if (tab === 'posts-list') {
+        document.getElementById('view-posts-list').classList.remove('hidden');
+        document.getElementById('view-post-editor').classList.add('hidden');
+        document.getElementById('nav-posts-list').classList.add('bg-gray-700', 'text-white');
+        document.getElementById('nav-post-editor').classList.remove('bg-gray-700', 'text-white');
+      } else {
+        document.getElementById('view-posts-list').classList.add('hidden');
+        document.getElementById('view-post-editor').classList.remove('hidden');
+        document.getElementById('nav-post-editor').classList.add('bg-gray-700', 'text-white');
+        document.getElementById('nav-posts-list').classList.remove('bg-gray-700', 'text-white');
+      }
+    }
+
+    function openNewPostForm() {
+      document.getElementById('editor-heading').textContent = 'Add New Post';
+      document.getElementById('post-form').reset();
+      document.getElementById('post-id').value = '';
+      document.getElementById('post-author').value = config.owner;
+      switchTab('post-editor');
+    }
+
+    function editPost(id) {
+      const post = postsData.find(p => String(p.id) === String(id));
+      if (!post) return;
+
+      document.getElementById('editor-heading').textContent = 'Edit Post';
+      document.getElementById('post-id').value = post.id;
+      document.getElementById('post-title').value = post.title || '';
+      document.getElementById('post-category').value = post.category || '';
+      document.getElementById('post-author').value = post.author || config.owner;
+      document.getElementById('post-excerpt').value = post.excerpt || '';
+      document.getElementById('post-content').value = post.content || '';
+
+      switchTab('post-editor');
+    }
+
+    async function savePost(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('save-btn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving to GitHub...';
+
+      const id = document.getElementById('post-id').value || String(Date.now());
+      const title = document.getElementById('post-title').value.trim();
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const category = document.getElementById('post-category').value.trim();
+      const author = document.getElementById('post-author').value.trim();
+      const excerpt = document.getElementById('post-excerpt').value.trim();
+      const content = document.getElementById('post-content').value.trim();
+      const today = new Date().toISOString().split('T')[0];
+
+      const postObj = { id, title, slug, date: today, category, author, excerpt, content };
+
+      const existingIndex = postsData.findIndex(p => String(p.id) === String(id));
+      if (existingIndex >= 0) {
+        postsData[existingIndex] = postObj;
+      } else {
+        postsData.unshift(postObj);
+      }
+
+      const success = await pushToGitHub(`Publish post: ${title}`);
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Publish / Save Post';
+
+      if (success) {
+        showStatus('Post saved and published successfully!', 'success');
+        switchTab('posts-list');
+        renderPostsTable();
+      }
+    }
+
+    async function deletePost(id) {
+      const post = postsData.find(p => String(p.id) === String(id));
+      if (!post) return;
+
+      if (!confirm(`Are you sure you want to delete post "${post.title}"?`)) return;
+
+      showStatus('Deleting post...', 'info');
+      postsData = postsData.filter(p => String(p.id) !== String(id));
+
+      const success = await pushToGitHub(`Delete post: ${post.title}`);
+      if (success) {
+        showStatus('Post deleted successfully!', 'success');
+        renderPostsTable();
+      } else {
+        fetchPosts();
+      }
+    }
+
+    async function pushToGitHub(commitMessage) {
+      try {
+        const jsonString = JSON.stringify(postsData, null, 2);
+        const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+
+        const res = await fetch(getApiUrl(), {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${config.token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          body: JSON.stringify({
+            message: commitMessage,
+            content: encodedContent,
+            sha: fileSha,
+            branch: 'main'
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.message || res.statusText);
+        }
+
+        const data = await res.json();
+        fileSha = data.content.sha;
+        return true;
+      } catch (err) {
+        showStatus('Failed to update GitHub: ' + err.message, 'error');
+        return false;
+      }
+    }
+
+    function showStatus(msg, type) {
+      const banner = document.getElementById('status-banner');
+      banner.classList.remove('hidden', 'bg-blue-100', 'text-blue-800', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+      if (type === 'success') banner.classList.add('bg-green-100', 'text-green-800');
+      else if (type === 'error') banner.classList.add('bg-red-100', 'text-red-800');
+      else banner.classList.add('bg-blue-100', 'text-blue-800');
+      banner.textContent = msg;
+    }
+
+    function hideStatus() {
+      document.getElementById('status-banner').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
