@@ -1,6 +1,439 @@
 <!DOCTYPE html>
 <html lang="en">
+<head><!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JoltFeed Admin Panel - WordPress Style CMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen">
+
+  <header class="bg-slate-900 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center font-black text-xl text-slate-900">J</div>
+        <div>
+          <h1 class="font-bold text-lg leading-none">JoltFeed Admin Panel</h1>
+          <p class="text-xs text-slate-400 mt-0.5">WordPress-Style Free Blog CMS</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span id="auth-status" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Connected</span>
+        <a href="../" target="_blank" class="text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg transition-colors">View Live Blog ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div>
+          <label class="block font-bold text-gray-700 uppercase tracking-wider mb-1">GitHub Owner</label>
+          <input type="text" id="gh-owner" value="JoltFeed" class="w-full p-2 border border-gray-300 rounded-lg">
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 uppercase tracking-wider mb-1">Repository Name</label>
+          <input type="text" id="gh-repo" value="cloudflare-blog-cms" class="w-full p-2 border border-gray-300 rounded-lg">
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 uppercase tracking-wider mb-1">GitHub Personal Access Token (PAT)</label>
+          <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx" class="w-full p-2 border border-gray-300 rounded-lg">
+        </div>
+      </div>
+    </div>
+
+    <div class="flex border-b border-gray-300 mb-6 space-x-2">
+      <button onclick="switchTab('posts')" id="tab-btn-posts" class="px-5 py-3 font-semibold text-sm border-b-2 border-amber-500 text-amber-600 bg-white rounded-t-xl">
+        Posts Manager
+      </button>
+      <button onclick="switchTab('ads')" id="tab-btn-ads" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 bg-gray-50 rounded-t-xl">
+        AdsKeeper & Ads Manager
+      </button>
+      <button onclick="switchTab('domain')" id="tab-btn-domain" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 bg-gray-50 rounded-t-xl">
+        ads.txt & Domain Manager
+      </button>
+    </div>
+
+    <div id="tab-posts" class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-extrabold text-gray-900">Manage Unlimited Blog Posts</h2>
+        <button onclick="openPostModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition-all shadow-sm">
+          + Create New Post
+        </button>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        <table class="w-full text-left text-xs sm:text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase font-bold tracking-wider">
+            <tr>
+              <th class="p-4">Title</th>
+              <th class="p-4">Category</th>
+              <th class="p-4">Author</th>
+              <th class="p-4">Date</th>
+              <th class="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="posts-table-body" class="divide-y divide-gray-100">
+            <tr><td colspan="5" class="p-8 text-center text-gray-400">Loading posts...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-ads" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+        <div>
+          <h2 class="text-xl font-extrabold text-gray-900 mb-1">AdsKeeper Ad Units & Site Configuration</h2>
+          <p class="text-xs text-gray-500">Configure global AdsKeeper script tags and dynamic ad slots rendered across your blog.</p>
+        </div>
+
+        <div class="space-y-4 text-xs sm:text-sm">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Site Title</label>
+              <input type="text" id="cfg-title" class="w-full p-2.5 border border-gray-300 rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Site Tagline</label>
+              <input type="text" id="cfg-tagline" class="w-full p-2.5 border border-gray-300 rounded-xl">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Global AdsKeeper Header Script (&lt;script&gt;)</label>
+            <textarea id="cfg-adskeeper-header" rows="2" placeholder="<script src='https://jsc.adskeeper.co.uk/...' async></script>" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-xs"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Header Ad Slot (Top Banner HTML/Script)</label>
+            <textarea id="cfg-ad-header" rows="3" placeholder="<!-- AdsKeeper Header Widget Code -->" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-xs"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">In-Article Ad Slot (Mid-Content Native Code)</label>
+            <textarea id="cfg-ad-inarticle" rows="3" placeholder="<!-- AdsKeeper In-Article Native Ad Code -->" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-xs"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Below-Post Recommendation Ad Slot (AdsKeeper Composite Widget Code)</label>
+            <textarea id="cfg-ad-belowpost" rows="3" placeholder="<!-- AdsKeeper Composite Recommendation Widget -->" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-xs"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Sidebar Ad Slot (Sidebar Widget HTML/Script)</label>
+            <textarea id="cfg-ad-sidebar" rows="3" placeholder="<!-- AdsKeeper Sidebar Ad Code -->" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-xs"></textarea>
+          </div>
+
+          <div class="flex items-center space-x-2 pt-2">
+            <input type="checkbox" id="cfg-demo-toggle" class="w-4 h-4 text-amber-500 rounded">
+            <label for="cfg-demo-toggle" class="font-semibold text-gray-700">Show Demo Placeholders when Ad Slots are empty</label>
+          </div>
+
+          <button onclick="saveAdConfig()" class="bg-gray-900 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-md">
+            Save Ads & Site Configuration
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-domain" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900">AdsKeeper ads.txt Manager</h3>
+            <p class="text-xs text-gray-500">Edit and publish root ads.txt to verify your domain with AdsKeeper.</p>
+          </div>
+          <textarea id="adstxt-content" rows="10" class="w-full p-3 border border-gray-300 rounded-xl font-mono text-xs"></textarea>
+          <button onclick="saveAdsTxt()" class="bg-gray-900 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm">
+            Publish ads.txt to Repository Root
+          </button>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-gray-900">Custom Domain (CNAME)</h3>
+            <p class="text-xs text-gray-500">Configure custom domain for GitHub Pages deployment.</p>
+          </div>
+          <div>
+            <label class="block font-bold text-gray-700 text-xs mb-1">Domain Name</label>
+            <input type="text" id="cname-input" placeholder="blog.example.com" class="w-full p-2.5 border border-gray-300 rounded-xl text-xs sm:text-sm">
+          </div>
+          <button onclick="saveCNAME()" class="bg-gray-900 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all shadow-sm">
+            Save CNAME File
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="post-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <h3 id="modal-title" class="text-lg font-extrabold text-gray-900">Create New Post</h3>
+        <button onclick="closePostModal()" class="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+      </div>
+      <input type="hidden" id="edit-post-id">
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Post Title</label>
+          <input type="text" id="post-title-input" class="w-full p-2.5 border border-gray-300 rounded-xl" oninput="autoSlug(this.value)">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Slug</label>
+            <input type="text" id="post-slug-input" class="w-full p-2.5 border border-gray-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Category</label>
+            <input type="text" id="post-cat-input" class="w-full p-2.5 border border-gray-300 rounded-xl" placeholder="General">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Author</label>
+            <input type="text" id="post-author-input" class="w-full p-2.5 border border-gray-300 rounded-xl" value="JoltFeed Team">
+          </div>
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Featured Image URL</label>
+            <input type="text" id="post-image-input" class="w-full p-2.5 border border-gray-300 rounded-xl" placeholder="https://images.unsplash.com/...">
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Excerpt</label>
+          <textarea id="post-excerpt-input" rows="2" class="w-full p-2.5 border border-gray-300 rounded-xl"></textarea>
+        </div>
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">HTML Content</label>
+          <textarea id="post-content-input" rows="6" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-xs"></textarea>
+        </div>
+        <div class="flex justify-end space-x-3 pt-2">
+          <button onclick="closePostModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl">Cancel</button>
+          <button onclick="savePost()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-sm">Save Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let postsData = [];
+    let configData = {};
+
+    function getGhAuth() {
+      return {
+        owner: document.getElementById('gh-owner').value.trim(),
+        repo: document.getElementById('gh-repo').value.trim(),
+        token: document.getElementById('gh-token').value.trim()
+      };
+    }
+
+    function switchTab(tab) {
+      ['posts', 'ads', 'domain'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${t}`);
+        btn.className = "px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 bg-gray-50 rounded-t-xl";
+      });
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      activeBtn.className = "px-5 py-3 font-semibold text-sm border-b-2 border-amber-500 text-amber-600 bg-white rounded-t-xl";
+    }
+
+    async function ghFetch(file) {
+      const { owner, repo } = getGhAuth();
+      const res = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/${file}?t=` + Date.now());
+      if (!res.ok) throw new Error("Fetch failed");
+      return res;
+    }
+
+    async function ghCommit(file, content, message) {
+      const { owner, repo, token } = getGhAuth();
+      if (!token) {
+        alert("Please enter a GitHub Personal Access Token (PAT) to commit changes.");
+        return false;
+      }
+      let sha = "";
+      try {
+        const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${file}`, {
+          headers: { 'Authorization': `token ${token}` }
+        });
+        if (getRes.ok) {
+          const data = await getRes.json();
+          sha = data.sha;
+        }
+      } catch(e) {}
+
+      const b64Content = btoa(unescape(encodeURIComponent(content)));
+      const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${file}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: message,
+          content: b64Content,
+          sha: sha || undefined
+        })
+      });
+
+      if (putRes.ok) {
+        alert(`Successfully saved ${file}!`);
+        return true;
+      } else {
+        const err = await putRes.json();
+        alert(`Error committing ${file}: ${err.message}`);
+        return false;
+      }
+    }
+
+    async function initAdmin() {
+      try {
+        const pRes = await ghFetch('posts.json');
+        postsData = await pRes.json();
+      } catch(e) {}
+      renderPostsTable();
+
+      try {
+        const cRes = await ghFetch('config.json');
+        configData = await cRes.json();
+        document.getElementById('cfg-title').value = configData.siteTitle || "";
+        document.getElementById('cfg-tagline').value = configData.siteTagline || "";
+        document.getElementById('cfg-adskeeper-header').value = configData.adskeeperHeaderScript || "";
+        document.getElementById('cfg-ad-header').value = configData.adSlotHeader || "";
+        document.getElementById('cfg-ad-inarticle').value = configData.adSlotInArticle || "";
+        document.getElementById('cfg-ad-belowpost').value = configData.adSlotBelowPost || "";
+        document.getElementById('cfg-ad-sidebar').value = configData.adSlotSidebar || "";
+        document.getElementById('cfg-demo-toggle').checked = configData.showDemoPlaceholders !== false;
+      } catch(e) {}
+
+      try {
+        const aRes = await ghFetch('ads.txt');
+        document.getElementById('adstxt-content').value = await aRes.text();
+      } catch(e) {}
+    }
+
+    function renderPostsTable() {
+      const tbody = document.getElementById('posts-table-body');
+      if (!postsData || postsData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">No posts found. Create your first post above!</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = postsData.map((p, idx) => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-4 font-bold text-gray-900">${p.title}</td>
+          <td class="p-4"><span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-md font-bold text-xs">${p.category || 'General'}</span></td>
+          <td class="p-4 text-gray-600">${p.author || 'JoltFeed'}</td>
+          <td class="p-4 text-gray-500">${p.date || ''}</td>
+          <td class="p-4 text-right space-x-2">
+            <button onclick="editPost(${idx})" class="text-amber-600 font-bold hover:underline">Edit</button>
+            <button onclick="deletePost(${idx})" class="text-red-600 font-bold hover:underline">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function autoSlug(val) {
+      document.getElementById('post-slug-input').value = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    function openPostModal(isEdit = false) {
+      if (!isEdit) {
+        document.getElementById('edit-post-id').value = '';
+        document.getElementById('post-title-input').value = '';
+        document.getElementById('post-slug-input').value = '';
+        document.getElementById('post-cat-input').value = 'General';
+        document.getElementById('post-author-input').value = 'JoltFeed Team';
+        document.getElementById('post-image-input').value = '';
+        document.getElementById('post-excerpt-input').value = '';
+        document.getElementById('post-content-input').value = '';
+        document.getElementById('modal-title').innerText = 'Create New Post';
+      }
+      document.getElementById('post-modal').classList.remove('hidden');
+    }
+
+    function closePostModal() {
+      document.getElementById('post-modal').classList.add('hidden');
+    }
+
+    function editPost(idx) {
+      const p = postsData[idx];
+      document.getElementById('edit-post-id').value = idx;
+      document.getElementById('post-title-input').value = p.title || '';
+      document.getElementById('post-slug-input').value = p.slug || '';
+      document.getElementById('post-cat-input').value = p.category || 'General';
+      document.getElementById('post-author-input').value = p.author || 'JoltFeed Team';
+      document.getElementById('post-image-input').value = p.image || '';
+      document.getElementById('post-excerpt-input').value = p.excerpt || '';
+      document.getElementById('post-content-input').value = p.content || '';
+      document.getElementById('modal-title').innerText = 'Edit Post';
+      openPostModal(true);
+    }
+
+    async function savePost() {
+      const idx = document.getElementById('edit-post-id').value;
+      const newPost = {
+        id: idx !== '' ? postsData[idx].id : 'post-' + Date.now(),
+        title: document.getElementById('post-title-input').value,
+        slug: document.getElementById('post-slug-input').value || 'post-' + Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        category: document.getElementById('post-cat-input').value || 'General',
+        author: document.getElementById('post-author-input').value || 'JoltFeed Team',
+        image: document.getElementById('post-image-input').value,
+        excerpt: document.getElementById('post-excerpt-input').value,
+        content: document.getElementById('post-content-input').value
+      };
+
+      if (idx !== '') postsData[idx] = newPost;
+      else postsData.unshift(newPost);
+
+      const ok = await ghCommit('posts.json', JSON.stringify(postsData, null, 2), 'Update posts via Admin Panel');
+      if (ok) {
+        closePostModal();
+        renderPostsTable();
+      }
+    }
+
+    async function deletePost(idx) {
+      if (!confirm("Are you sure you want to delete this post?")) return;
+      postsData.splice(idx, 1);
+      const ok = await ghCommit('posts.json', JSON.stringify(postsData, null, 2), 'Delete post via Admin Panel');
+      if (ok) renderPostsTable();
+    }
+
+    async function saveAdConfig() {
+      configData = {
+        siteTitle: document.getElementById('cfg-title').value,
+        siteTagline: document.getElementById('cfg-tagline').value,
+        adskeeperHeaderScript: document.getElementById('cfg-adskeeper-header').value,
+        adSlotHeader: document.getElementById('cfg-ad-header').value,
+        adSlotInArticle: document.getElementById('cfg-ad-inarticle').value,
+        adSlotBelowPost: document.getElementById('cfg-ad-belowpost').value,
+        adSlotSidebar: document.getElementById('cfg-ad-sidebar').value,
+        showDemoPlaceholders: document.getElementById('cfg-demo-toggle').checked
+      };
+      await ghCommit('config.json', JSON.stringify(configData, null, 2), 'Update AdsKeeper & Site Config via Admin Panel');
+    }
+
+    async function saveAdsTxt() {
+      const content = document.getElementById('adstxt-content').value;
+      await ghCommit('ads.txt', content, 'Update ads.txt publisher lines via Admin Panel');
+    }
+
+    async function saveCNAME() {
+      const domain = document.getElementById('cname-input').value.trim();
+      if (!domain) return alert("Please enter a domain name.");
+      await ghCommit('CNAME', domain, 'Update CNAME custom domain via Admin Panel');
+    }
+
+    window.onload = initAdmin;
+  </script>
+</body>
+</html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - WordPress Style CMS</title>
