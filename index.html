@@ -1,356 +1,520 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JoltFeed - Modern Blog & Digital Insights</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JoltFeed — Minimal Editorial Blog</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #111827; }
+    .serif-title { font-family: Georgia, Cambria, "Times New Roman", Times, serif; }
+    .prose-editorial p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; font-size: 1.125rem; }
+    .prose-editorial img, .prose-editorial video { margin-top: 1.5rem; margin-bottom: 1.5rem; border-radius: 0.375rem; }
+    .ad-placeholder { background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 0.375rem; padding: 1rem; text-align: center; margin-top: 1.5rem; margin-bottom: 1.5rem; }
+    .ad-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; color: #6b7280; text-transform: uppercase; }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
-    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="#" onclick="renderPosts()" class="flex items-center space-x-3 group">
-                <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center font-black text-2xl text-slate-950 group-hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20">J</div>
-                <div>
-                    <h1 class="font-black text-xl tracking-tight leading-none text-white">JoltFeed</h1>
-                    <p class="text-xs text-amber-400 font-medium mt-0.5">Cloudflare Powered Digital Media</p>
-                </div>
-            </a>
-            <div class="flex items-center space-x-4">
-                <a href="./admin/" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center gap-2">
-                    🔐 Admin Panel
-                </a>
-            </div>
-        </div>
-    </header>
-    <div id="ad-slot-header" class="max-w-7xl mx-auto px-4 mt-6 w-full hidden">
-        <div class="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 text-center text-xs text-slate-400">
-            <span class="font-semibold text-slate-500 uppercase tracking-widest block mb-1">Sponsored Advertisement</span>
-            <div id="ad-header-container"></div>
-        </div>
+<body class="bg-white text-gray-900 min-h-screen flex flex-col antialiased">
+
+  <!-- Header -->
+  <header class="border-b border-gray-200 bg-white sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="goHome()">
+        <span class="text-2xl font-black tracking-tighter serif-title text-gray-900">JoltFeed</span>
+        <span class="hidden sm:inline-block border-l border-gray-300 pl-3 text-xs font-medium text-gray-500 uppercase tracking-widest">Editorial & Insights</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button onclick="goHome()" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Articles</button>
+        <a href="./admin/" class="text-xs font-semibold px-3 py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800 transition">Admin Panel</a>
+      </div>
     </div>
-    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div class="lg:col-span-3 space-y-8">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="relative w-full sm:w-72">
-                    <input type="text" id="search-input" onkeyup="filterPosts()" placeholder="🔍 Search articles..." class="w-full pl-4 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-                </div>
-                <div class="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                    <button onclick="setCategory('All')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-bold rounded-xl bg-amber-500 text-slate-950">All</button>
-                    <button onclick="setCategory('Technology')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">Technology</button>
-                    <button onclick="setCategory('AI & Future')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">AI & Future</button>
-                    <button onclick="setCategory('Business')" class="cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">Business</button>
-                </div>
-            </div>
-            <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+  </header>
+
+  <!-- Container -->
+  <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+    
+    <!-- HOMEPAGE / LIST VIEW -->
+    <div id="homepage-view" class="space-y-8">
+      <div class="border-b border-gray-200 pb-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight text-gray-900 serif-title">Latest Stories</h1>
+          <p class="text-sm text-gray-500 mt-1">High-CTR digital media platform powered by Cloudflare.</p>
         </div>
-        <aside class="space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <div class="flex items-center space-x-3 mb-3">
-                    <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center font-bold text-slate-950">J</div>
-                    <h3 class="font-bold text-slate-900">About JoltFeed</h3>
-                </div>
-                <p class="text-xs text-slate-600 leading-relaxed">
-                    Fast, Cloudflare-optimized digital publishing platform. Delivering real-time news, AI insights, tech innovation, and media directly to your screen.
-                </p>
-            </div>
-            <div id="ad-slot-sidebar" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center hidden">
-                <span class="font-semibold text-slate-400 text-xs uppercase tracking-wider block mb-2">Sponsored Ad</span>
-                <div id="ad-sidebar-container"></div>
-            </div>
-        </aside>
-    </main>
-    <div id="article-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white max-w-3xl w-full rounded-3xl shadow-2xl overflow-hidden my-8 border border-slate-100 max-h-[90vh] flex flex-col">
-            <div class="p-4 bg-slate-900 text-white flex items-center justify-between sticky top-0 z-10">
-                <span id="modal-category" class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500 text-slate-950">Category</span>
-                <button onclick="closeArticleModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition font-bold">
-                    ✕
-                </button>
-            </div>
-            <div class="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1">
-                <h1 id="modal-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">Post Title</h1>
-                <div class="flex items-center space-x-4 text-xs text-slate-500 border-b pb-4">
-                    <span>👤 <span id="modal-author">Admin</span></span>
-                    <span>📅 <span id="modal-date">Nov 8, 2026</span></span>
-                </div>
-                <div id="modal-media-box" class="rounded-2xl overflow-hidden border border-slate-200 bg-slate-950"></div>
-                <div id="modal-content" class="prose prose-slate max-w-none text-slate-700 text-sm leading-relaxed space-y-4"></div>
-                <div id="ad-slot-article" class="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-center hidden">
-                    <span class="text-xs text-slate-400 font-semibold uppercase block mb-1">Advertisement</span>
-                    <div id="ad-article-container"></div>
-                </div>
-                <div class="pt-4 border-t border-slate-200">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
-                        📢 Share Article
-                    </h4>
-                    <div id="modal-share-buttons" class="flex flex-wrap items-center gap-2"></div>
-                    <div id="share-toast" class="hidden text-xs bg-emerald-100 border border-emerald-300 text-emerald-800 px-3 py-1.5 rounded-lg mt-2 flex items-center gap-2">
-                        ✓ Link copied to clipboard!
-                    </div>
-                </div>
-                <div class="pt-6 border-t border-slate-200 space-y-6">
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        💬 Comments (<span id="modal-comments-count">0</span>)
-                    </h3>
-                    <form onsubmit="submitComment(event)" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                        <input type="hidden" id="comment-post-id">
-                        <div>
-                            <input type="text" id="comment-name" required placeholder="Your Name..." class="w-full px-3.5 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none">
-                        </div>
-                        <div>
-                            <textarea id="comment-text" required rows="3" placeholder="Write a comment..." class="w-full px-3.5 py-2 text-sm border rounded-xl focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
-                        </div>
-                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
-                            ✈️ Submit Comment
-                        </button>
-                    </form>
-                    <div id="modal-comments-list" class="space-y-3"></div>
-                </div>
-            </div>
+        <div class="flex items-center space-x-2">
+          <input type="text" id="search-input" oninput="filterPosts()" placeholder="Search articles..." class="px-3 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900 w-48 sm:w-64">
         </div>
+      </div>
+
+      <!-- Categories Filter -->
+      <div id="category-filter-bar" class="flex flex-wrap gap-2 pb-4 border-b border-gray-100 text-sm">
+        <button onclick="filterCategory('All')" class="cat-btn px-3 py-1 rounded-full bg-gray-900 text-white font-medium text-xs">All</button>
+      </div>
+
+      <!-- Article Grid / List -->
+      <div id="posts-container" class="space-y-8">
+        <!-- Injected via JavaScript -->
+      </div>
     </div>
-    <footer class="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-center text-xs mt-12">
-        <p>© 2026 JoltFeed Cloudflare Blog CMS. All rights reserved.</p>
-    </footer>
-    <script>
-        const POSTS_KEY = 'joltfeed_posts';
-        const ADS_KEY = 'joltfeed_ads';
-        let allPosts = [];
-        let currentCategory = 'All';
-        async function init() {
-            let localPosts = [];
-            const stored = localStorage.getItem(POSTS_KEY);
-            if (stored) {
-                try { localPosts = JSON.parse(stored); } catch(e){}
-            }
-            try {
-                const res = await fetch('./posts.json');
-                if (res.ok) {
-                    const jsonPosts = await res.json();
-                    const ids = new Set(localPosts.map(p => p.id));
-                    jsonPosts.forEach(jp => {
-                        if (!ids.has(jp.id)) localPosts.push(jp);
-                    });
-                }
-            } catch(e) {}
-            allPosts = localPosts;
-            localStorage.setItem(POSTS_KEY, JSON.stringify(allPosts));
-            renderPosts();
-            loadAds();
+
+    <!-- FULL-PAGE ARTICLE VIEW (NO POP-UP / MODAL) -->
+    <div id="article-view" class="hidden space-y-6">
+      
+      <!-- Back Navigation -->
+      <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+        <button onclick="goHome()" class="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900 transition">
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Back to Articles
+        </button>
+        <span id="article-category-badge" class="text-xs font-semibold uppercase tracking-wider text-gray-500 bg-gray-100 px-2.5 py-1 rounded">Category</span>
+      </div>
+
+      <!-- 1. BEFORE TITLE AD SLOT -->
+      <div id="ad-before-title" class="ad-slot my-4"></div>
+
+      <!-- Article Header -->
+      <header class="space-y-4">
+        <h1 id="article-title" class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight serif-title"></h1>
+        <div class="flex items-center text-sm text-gray-500 space-x-4 border-b border-gray-200 pb-4">
+          <span id="article-author" class="font-medium text-gray-800"></span>
+          <span>•</span>
+          <span id="article-date"></span>
+          <span>•</span>
+          <span id="article-readtime">3 min read</span>
+        </div>
+      </header>
+
+      <!-- 2. BEFORE FIRST IMAGE AD SLOT -->
+      <div id="ad-before-image" class="ad-slot my-4"></div>
+
+      <!-- Featured Image or Video -->
+      <div id="article-media-container" class="w-full"></div>
+
+      <!-- Article Body Content (3. BETWEEN PARAGRAPHS AD SLOTS INJECTED HERE) -->
+      <article id="article-content" class="prose-editorial max-w-none py-4 text-gray-800"></article>
+
+      <!-- 4. AFTER POST AD SLOT -->
+      <div id="ad-after-post" class="ad-slot my-6"></div>
+
+      <!-- Share Buttons & Likes Bar -->
+      <div class="border-t border-b border-gray-200 py-6 my-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+          <button id="like-btn" onclick="toggleLike()" class="inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+            <svg class="w-5 h-5 text-red-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span>Like</span>
+            <span id="like-count" class="bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">Share:</span>
+          <button onclick="shareArticle('facebook')" class="p-2 text-gray-600 hover:text-blue-600 transition" title="Share on Facebook">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </button>
+          <button onclick="shareArticle('twitter')" class="p-2 text-gray-600 hover:text-black transition" title="Share on X / Twitter">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </button>
+          <button onclick="shareArticle('whatsapp')" class="p-2 text-gray-600 hover:text-green-600 transition" title="Share on WhatsApp">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.002 3.66 3.745-.983z"/></svg>
+          </button>
+          <button onclick="shareArticle('telegram')" class="p-2 text-gray-600 hover:text-blue-500 transition" title="Share on Telegram">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-2.03 9.56c-.15.68-.55.84-1.12.52l-3.1-2.28-1.5 1.44c-.16.16-.3.3-.61.3l.22-3.16 5.75-5.2c.25-.22-.05-.34-.39-.12l-7.1 4.47-3.07-.96c-.67-.21-.68-.67.14-.99l12.01-4.63c.55-.2 1.04.13.85.85z"/></svg>
+          </button>
+          <button onclick="copyLink()" class="p-2 text-gray-600 hover:text-gray-900 transition" title="Copy Article Link">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Comments Section -->
+      <section class="space-y-6 pt-4">
+        <h2 class="text-2xl font-bold text-gray-900 serif-title">Comments</h2>
+        
+        <!-- Comment Form -->
+        <form id="comment-form" onsubmit="submitComment(event)" class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Your Name</label>
+            <input type="text" id="comment-name" required placeholder="Jane Doe" class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Comment</label>
+            <textarea id="comment-text" required rows="3" placeholder="Share your thoughts..." class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-gray-900"></textarea>
+          </div>
+          <button type="submit" class="px-4 py-2 bg-gray-900 text-white font-medium text-sm rounded hover:bg-gray-800 transition">Post Comment</button>
+        </form>
+
+        <!-- Comments List -->
+        <div id="comments-list" class="space-y-4 pt-4">
+          <!-- Comments rendered dynamically -->
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-200 bg-white py-8 mt-12 text-center text-xs text-gray-500">
+    <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>© 2026 JoltFeed. Minimal Editorial Publishing platform.</p>
+      <div class="flex items-center space-x-4">
+        <a href="./admin/" class="hover:underline">Admin Login</a>
+        <span>•</span>
+        <a href="#" onclick="goHome()" class="hover:underline">Home</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let posts = [];
+    let currentPost = null;
+    let config = {
+      globalHeaderScript: "",
+      adSlotBeforeTitle: "",
+      adSlotBeforeImage: "",
+      adSlotBetweenParagraphs: "",
+      paragraphAdInterval: 1,
+      adSlotAfterPost: "",
+      showDemoPlaceholders: true
+    };
+
+    // Global Initialization
+    async function init() {
+      loadConfig();
+      await loadPosts();
+      setupGlobalScripts();
+      
+      // Check URL parameters for direct full-page article view (?post=1 or ?post=post-1)
+      const urlParams = new URLSearchParams(window.location.search);
+      const postIdParam = urlParams.get('post');
+      
+      if (postIdParam) {
+        showArticleView(postIdParam);
+      } else {
+        showHomepageView();
+      }
+
+      window.addEventListener('popstate', () => {
+        const params = new URLSearchParams(window.location.search);
+        const pId = params.get('post');
+        if (pId) {
+          showArticleView(pId);
+        } else {
+          showHomepageView();
         }
-        function renderPosts() {
-            const grid = document.getElementById('posts-grid');
-            const searchVal = (document.getElementById('search-input')?.value || '').toLowerCase();
-            const filtered = allPosts.filter(p => {
-                const matchCat = currentCategory === 'All' || p.category === currentCategory;
-                const matchSearch = p.title.toLowerCase().includes(searchVal) || (p.excerpt && p.excerpt.toLowerCase().includes(searchVal));
-                return matchCat && matchSearch;
-            });
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-400">No articles found matching criteria.</div>`;
-                return;
-            }
-            grid.innerHTML = filtered.map(p => {
-                const cCount = p.comments ? p.comments.length : 0;
-                const likes = p.likes || 0;
-                let mediaHtml = '';
-                if (p.video) {
-                    if (p.video.includes('youtube.com') || p.video.includes('youtu.be')) {
-                        mediaHtml = `<div class="aspect-video w-full"><iframe src="${p.video}" class="w-full h-full rounded-t-2xl" frameborder="0" allowfullscreen></iframe></div>`;
-                    } else {
-                        mediaHtml = `<video controls class="w-full h-48 object-cover rounded-t-2xl bg-black"><source src="${p.video}"></video>`;
-                    }
-                } else if (p.image) {
-                    mediaHtml = `<img src="${p.image}" class="w-full h-48 object-cover rounded-t-2xl">`;
-                } else {
-                    mediaHtml = `<div class="w-full h-36 bg-gradient-to-r from-slate-800 to-slate-900 rounded-t-2xl flex items-center justify-center text-amber-500 text-3xl font-bold">JoltFeed</div>`;
-                }
-                return `
-                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden group">
-                        <div>
-                            ${mediaHtml}
-                            <div class="p-5">
-                                <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">${p.category || 'General'}</span>
-                                    <span>${p.date || 'Recent'}</span>
-                                </div>
-                                <h2 onclick="openArticleModal('${p.id}')" class="font-extrabold text-slate-900 text-lg hover:text-amber-600 transition cursor-pointer line-clamp-2 mb-2">${p.title}</h2>
-                                <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">${p.excerpt || ''}</p>
-                            </div>
-                        </div>
-                        <div class="px-5 pb-5 pt-2 border-t border-slate-100 flex flex-col gap-3">
-                            <div class="flex items-center gap-1.5 overflow-x-auto text-xs">
-                                <span class="text-[10px] text-slate-400 uppercase font-bold mr-1">Share:</span>
-                                <button onclick="sharePost('facebook', '${p.id}')" class="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg font-bold" title="Share on Facebook">Facebook</button>
-                                <button onclick="sharePost('whatsapp', '${p.id}')" class="px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg font-bold" title="Share on WhatsApp">WhatsApp</button>
-                                <button onclick="sharePost('twitter', '${p.id}')" class="px-2 py-1 bg-slate-100 text-slate-800 rounded-lg font-bold" title="Share on X">X</button>
-                                <button onclick="sharePost('telegram', '${p.id}')" class="px-2 py-1 bg-sky-50 text-sky-600 rounded-lg font-bold" title="Share on Telegram">Telegram</button>
-                                <button onclick="copyPostLink('${p.id}')" class="px-2 py-1 bg-amber-50 text-amber-700 rounded-lg font-bold flex items-center gap-1" title="Copy Link">🔗 Copy Link</button>
-                            </div>
-                            <div class="flex items-center justify-between pt-1 text-xs">
-                                <button onclick="toggleLike('${p.id}')" class="flex items-center gap-1.5 font-bold text-slate-600 hover:text-red-500 transition">
-                                    ❤️ <span>${likes}</span>
-                                </button>
-                                <button onclick="openArticleModal('${p.id}')" class="flex items-center gap-1.5 font-bold text-slate-600 hover:text-amber-600 transition">
-                                    💬 <span>${cCount} Comments</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+      });
+    }
+
+    function loadConfig() {
+      const savedConfig = localStorage.getItem('jolt_config');
+      if (savedConfig) {
+        try {
+          config = Object.assign({}, config, JSON.parse(savedConfig));
+        } catch(e) {}
+      }
+      // Also attempt config.json fetch
+      fetch('./config.json')
+        .then(res => res.json())
+        .then(data => {
+          config = Object.assign({}, config, data);
+          localStorage.setItem('jolt_config', JSON.stringify(config));
+        })
+        .catch(() => {});
+    }
+
+    async function loadPosts() {
+      const savedPosts = localStorage.getItem('jolt_posts');
+      if (savedPosts) {
+        try {
+          posts = JSON.parse(savedPosts);
+        } catch(e) {}
+      }
+
+      try {
+        const res = await fetch('./posts.json');
+        if (res.ok) {
+          const remotePosts = await res.json();
+          if (remotePosts && remotePosts.length > 0) {
+            posts = remotePosts;
+            localStorage.setItem('jolt_posts', JSON.stringify(posts));
+          }
         }
-        function setCategory(cat) {
-            currentCategory = cat;
-            document.querySelectorAll('.cat-filter-btn').forEach(btn => {
-                if (btn.innerText === cat) {
-                    btn.className = "cat-filter-btn px-3.5 py-1.5 text-xs font-bold rounded-xl bg-amber-500 text-slate-950";
-                } else {
-                    btn.className = "cat-filter-btn px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200";
-                }
-            });
-            renderPosts();
+      } catch(e) {}
+    }
+
+    function setupGlobalScripts() {
+      const scriptCode = config.globalHeaderScript || config.adskeeperHeaderScript;
+      if (scriptCode && scriptCode.trim()) {
+        try {
+          const range = document.createRange();
+          const fragment = range.createContextualFragment(scriptCode);
+          document.head.appendChild(fragment);
+        } catch(e) {
+          console.error("Global script execution error:", e);
         }
-        function filterPosts() {
-            renderPosts();
+      }
+    }
+
+    function renderCategoryButtons() {
+      const categories = ['All', ...new Set(posts.map(p => p.category).filter(Boolean))];
+      const bar = document.getElementById('category-filter-bar');
+      if (!bar) return;
+      bar.innerHTML = categories.map(cat => `
+        <button onclick="filterCategory('${cat}')" class="cat-btn px-3 py-1 rounded-full border border-gray-200 text-gray-700 hover:border-gray-900 transition font-medium text-xs">${cat}</button>
+      `).join('');
+    }
+
+    function renderPostsList(list) {
+      renderCategoryButtons();
+      const container = document.getElementById('posts-container');
+      if (!container) return;
+      if (!list || list.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 text-center py-8">No articles found.</p>`;
+        return;
+      }
+
+      container.innerHTML = list.map(post => `
+        <article class="group border-b border-gray-100 pb-8 cursor-pointer flex flex-col md:flex-row gap-6 items-start" onclick="navigateToPost('${post.id}')">
+          ${post.image ? `<img src="${post.image}" alt="${post.title}" class="w-full md:w-56 h-40 object-cover rounded bg-gray-100 flex-shrink-0 group-hover:opacity-95 transition">` : ''}
+          <div class="flex-grow space-y-2">
+            <div class="flex items-center space-x-3 text-xs text-gray-500">
+              <span class="font-semibold text-gray-900 uppercase tracking-wider">${post.category || 'General'}</span>
+              <span>•</span>
+              <span>${post.date || 'Recent'}</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 group-hover:text-blue-600 transition serif-title">${post.title}</h2>
+            <p class="text-gray-600 text-sm leading-relaxed line-clamp-3">${post.excerpt || (post.content ? post.content.replace(/<[^>]*>?/gm, '').substring(0, 160) + '...' : '')}</p>
+            <div class="pt-2 text-xs font-medium text-gray-900 flex items-center space-x-1">
+              <span>Read Full Article</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l7-7m7 7H3"></path></svg>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function filterCategory(cat) {
+      if (cat === 'All') {
+        renderPostsList(posts);
+      } else {
+        const filtered = posts.filter(p => p.category === cat);
+        renderPostsList(filtered);
+      }
+    }
+
+    function filterPosts() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const filtered = posts.filter(p => p.title.toLowerCase().includes(q) || (p.excerpt && p.excerpt.toLowerCase().includes(q)));
+      renderPostsList(filtered);
+    }
+
+    function goHome() {
+      history.pushState({}, '', window.location.pathname);
+      showHomepageView();
+    }
+
+    function navigateToPost(id) {
+      history.pushState({}, '', '?post=' + id);
+      showArticleView(id);
+    }
+
+    function showHomepageView() {
+      document.getElementById('homepage-view').classList.remove('hidden');
+      document.getElementById('article-view').classList.add('hidden');
+      window.scrollTo(0, 0);
+      renderPostsList(posts);
+    }
+
+    function showArticleView(id) {
+      const found = posts.find(p => String(p.id) === String(id) || String(p.id) === 'post-' + String(id) || 'post-' + String(p.id) === String(id) || (p.slug && p.slug === id));
+      if (!found) {
+        showHomepageView();
+        return;
+      }
+
+      currentPost = found;
+      document.getElementById('homepage-view').classList.add('hidden');
+      document.getElementById('article-view').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Article Header Data
+      document.getElementById('article-title').innerText = found.title;
+      document.getElementById('article-author').innerText = found.author ? 'By ' + found.author : 'By Editorial Team';
+      document.getElementById('article-date').innerText = found.date || 'Recent';
+      document.getElementById('article-category-badge').innerText = found.category || 'General';
+
+      // 1. BEFORE TITLE AD
+      injectAdSlot('ad-before-title', config.adSlotBeforeTitle, '1. Before Title Ad Slot');
+
+      // 2. BEFORE FIRST IMAGE AD
+      injectAdSlot('ad-before-image', config.adSlotBeforeImage, '2. Before First Image Ad Slot');
+
+      // Media Container
+      const mediaContainer = document.getElementById('article-media-container');
+      if (found.video) {
+        mediaContainer.innerHTML = `<video controls class="w-full rounded bg-black max-h-[480px] my-4"><source src="${found.video}" type="video/mp4">Your browser does not support video.</video>`;
+      } else if (found.image) {
+        mediaContainer.innerHTML = `<img src="${found.image}" alt="${found.title}" class="w-full h-auto max-h-[480px] object-cover rounded my-4">`;
+      } else {
+        mediaContainer.innerHTML = '';
+      }
+
+      // 3. ARTICLE CONTENT + BETWEEN PARAGRAPHS ADS
+      const articleEl = document.getElementById('article-content');
+      articleEl.innerHTML = formatContentWithBetweenParagraphAds(found.content || '');
+      executeAdScripts(articleEl);
+
+      // 4. AFTER POST AD
+      injectAdSlot('ad-after-post', config.adSlotAfterPost, '4. After Post Ad Slot');
+
+      // Likes & Comments
+      document.getElementById('like-count').innerText = found.likes || 0;
+      renderComments();
+    }
+
+    function formatContentWithBetweenParagraphAds(contentHtml) {
+      const interval = parseInt(config.paragraphAdInterval !== undefined ? config.paragraphAdInterval : 1);
+      const adCode = config.adSlotBetweenParagraphs;
+      const showDemo = config.showDemoPlaceholders !== false;
+
+      if (!interval || interval === 0) {
+        return contentHtml;
+      }
+
+      const temp = document.createElement('div');
+      temp.innerHTML = contentHtml;
+      const paragraphs = Array.from(temp.querySelectorAll('p'));
+
+      if (paragraphs.length === 0) {
+        return contentHtml;
+      }
+
+      paragraphs.forEach((p, idx) => {
+        const count = idx + 1;
+        if (count % interval === 0) {
+          const adContainer = document.createElement('div');
+          adContainer.className = 'ad-slot my-6';
+          if (adCode && adCode.trim()) {
+            adContainer.innerHTML = adCode;
+          } else if (showDemo) {
+            adContainer.innerHTML = `
+              <div class="ad-placeholder">
+                <div class="ad-label">3. Between Paragraphs Ad Slot (After P${count})</div>
+              </div>`;
+          }
+          p.after(adContainer);
         }
-        function toggleLike(id) {
-            const post = allPosts.find(p => p.id === id);
-            if(post) {
-                post.likes = (post.likes || 0) + 1;
-                localStorage.setItem(POSTS_KEY, JSON.stringify(allPosts));
-                renderPosts();
-            }
+      });
+
+      return temp.innerHTML;
+    }
+
+    function injectAdSlot(containerId, adCode, placeholderTitle) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      const showDemo = config.showDemoPlaceholders !== false;
+
+      if (adCode && adCode.trim()) {
+        el.innerHTML = adCode;
+        executeAdScripts(el);
+      } else if (showDemo) {
+        el.innerHTML = `
+          <div class="ad-placeholder">
+            <div class="ad-label">${placeholderTitle}</div>
+          </div>`;
+      } else {
+        el.innerHTML = '';
+      }
+    }
+
+    function executeAdScripts(container) {
+      if (!container) return;
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+        } else {
+          newScript.textContent = oldScript.textContent;
         }
-        function openArticleModal(id) {
-            const p = allPosts.find(item => item.id === id);
-            if(!p) return;
-            document.getElementById('modal-category').innerText = p.category || 'General';
-            document.getElementById('modal-title').innerText = p.title;
-            document.getElementById('modal-author').innerText = p.author || 'Admin';
-            document.getElementById('modal-date').innerText = p.date || 'Nov 8, 2026';
-            document.getElementById('modal-content').innerHTML = p.content || `<p>${p.excerpt}</p>`;
-            document.getElementById('comment-post-id').value = p.id;
-            const mediaBox = document.getElementById('modal-media-box');
-            if (p.video) {
-                if (p.video.includes('youtube.com') || p.video.includes('youtu.be')) {
-                    mediaBox.innerHTML = `<div class="aspect-video w-full"><iframe src="${p.video}" class="w-full h-full" frameborder="0" allowfullscreen></iframe></div>`;
-                } else {
-                    mediaBox.innerHTML = `<video controls class="w-full max-h-[400px] object-contain bg-black"><source src="${p.video}"></video>`;
-                }
-                mediaBox.classList.remove('hidden');
-            } else if (p.image) {
-                mediaBox.innerHTML = `<img src="${p.image}" class="w-full max-h-[400px] object-cover">`;
-                mediaBox.classList.remove('hidden');
-            } else {
-                mediaBox.classList.add('hidden');
-            }
-            const url = encodeURIComponent(window.location.origin + window.location.pathname + '#' + p.id);
-            const title = encodeURIComponent(p.title);
-            document.getElementById('modal-share-buttons').innerHTML = `
-                <a href="https://www.facebook.com/sharer/sharer.php?u=${url}" target="_blank" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700">Facebook</a>
-                <a href="https://api.whatsapp.com/send?text=${title}%20${url}" target="_blank" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700">WhatsApp</a>
-                <a href="https://twitter.com/intent/tweet?text=${title}&url=${url}" target="_blank" class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-black">X</a>
-                <a href="https://t.me/share/url?url=${url}&text=${title}" target="_blank" class="px-3 py-1.5 bg-sky-500 text-white rounded-lg text-xs font-semibold hover:bg-sky-600">Telegram</a>
-                <button onclick="copyPostLink('${p.id}')" class="px-3 py-1.5 bg-amber-500 text-slate-950 rounded-lg text-xs font-bold hover:bg-amber-400">🔗 Copy Link</button>
-            `;
-            renderModalComments(p.comments || []);
-            document.getElementById('article-modal').classList.remove('hidden');
-        }
-        function closeArticleModal() {
-            document.getElementById('article-modal').classList.add('hidden');
-        }
-        function sharePost(platform, id) {
-            const p = allPosts.find(item => item.id === id);
-            const url = encodeURIComponent(window.location.origin + window.location.pathname + '#' + (p ? p.id : ''));
-            const title = encodeURIComponent(p ? p.title : 'JoltFeed Article');
-            let link = '';
-            if(platform === 'facebook') link = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-            if(platform === 'whatsapp') link = `https://api.whatsapp.com/send?text=${title}%20${url}`;
-            if(platform === 'twitter') link = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
-            if(platform === 'telegram') link = `https://t.me/share/url?url=${url}&text=${title}`;
-            if(link) window.open(link, '_blank');
-        }
-        function copyPostLink(id) {
-            const link = window.location.origin + window.location.pathname + '#' + id;
-            navigator.clipboard.writeText(link).then(() => {
-                const toast = document.getElementById('share-toast');
-                if(toast) {
-                    toast.classList.remove('hidden');
-                    setTimeout(() => toast.classList.add('hidden'), 3000);
-                } else {
-                    alert('Link copied to clipboard: ' + link);
-                }
-            }).catch(() => {
-                alert('Link: ' + link);
-            });
-        }
-        function renderModalComments(comments) {
-            document.getElementById('modal-comments-count').innerText = comments.length;
-            const container = document.getElementById('modal-comments-list');
-            if(comments.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 italic">No comments yet. Be the first to join the conversation!</p>`;
-                return;
-            }
-            container.innerHTML = comments.map(c => `
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-slate-900">${c.name || 'Anonymous'}</span>
-                        <span class="text-[10px] text-slate-400">${c.date || 'Just now'}</span>
-                    </div>
-                    <p class="text-slate-700 leading-normal">${c.text}</p>
-                </div>
-            `).join('');
-        }
-        function submitComment(e) {
-            e.preventDefault();
-            const postId = document.getElementById('comment-post-id').value;
-            const name = document.getElementById('comment-name').value.trim();
-            const text = document.getElementById('comment-text').value.trim();
-            if(!name || !text) return;
-            const post = allPosts.find(p => p.id === postId);
-            if(post) {
-                if(!post.comments) post.comments = [];
-                const newComment = {
-                    id: 'c_' + Date.now(),
-                    name,
-                    text,
-                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                };
-                post.comments.push(newComment);
-                localStorage.setItem(POSTS_KEY, JSON.stringify(allPosts));
-                renderModalComments(post.comments);
-                document.getElementById('comment-name').value = '';
-                document.getElementById('comment-text').value = '';
-                renderPosts();
-            }
-        }
-        function loadAds() {
-            const stored = localStorage.getItem(ADS_KEY);
-            if(stored) {
-                try {
-                    const ads = JSON.parse(stored);
-                    if(ads.header && ads.header.enable && ads.header.code) {
-                        document.getElementById('ad-header-container').innerHTML = ads.header.code;
-                        document.getElementById('ad-slot-header').classList.remove('hidden');
-                    }
-                    if(ads.article && ads.article.enable && ads.article.code) {
-                        document.getElementById('ad-article-container').innerHTML = ads.article.code;
-                        document.getElementById('ad-slot-article').classList.remove('hidden');
-                    }
-                    if(ads.sidebar && ads.sidebar.enable && ads.sidebar.code) {
-                        document.getElementById('ad-sidebar-container').innerHTML = ads.sidebar.code;
-                        document.getElementById('ad-slot-sidebar').classList.remove('hidden');
-                    }
-                } catch(e){}
-            }
-        }
-        init();
-    </script>
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+      });
+    }
+
+    function toggleLike() {
+      if (!currentPost) return;
+      currentPost.likes = (currentPost.likes || 0) + 1;
+      document.getElementById('like-count').innerText = currentPost.likes;
+      savePostsState();
+    }
+
+    function renderComments() {
+      const container = document.getElementById('comments-list');
+      if (!currentPost || !currentPost.comments || currentPost.comments.length === 0) {
+        container.innerHTML = `<p class="text-sm text-gray-500 italic">No comments yet. Be the first to share a thought!</p>`;
+        return;
+      }
+      container.innerHTML = currentPost.comments.map(c => `
+        <div class="border-b border-gray-100 pb-3">
+          <div class="flex items-center justify-between text-xs text-gray-500 mb-1">
+            <span class="font-bold text-gray-900">${c.name || 'Anonymous'}</span>
+            <span>${c.date || 'Just now'}</span>
+          </div>
+          <p class="text-sm text-gray-700">${c.text}</p>
+        </div>
+      `).join('');
+    }
+
+    function submitComment(e) {
+      e.preventDefault();
+      if (!currentPost) return;
+      const name = document.getElementById('comment-name').value.trim();
+      const text = document.getElementById('comment-text').value.trim();
+      if (!name || !text) return;
+
+      if (!currentPost.comments) currentPost.comments = [];
+      currentPost.comments.push({
+        id: 'c-' + Date.now(),
+        name: name,
+        text: text,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      });
+
+      document.getElementById('comment-text').value = '';
+      renderComments();
+      savePostsState();
+    }
+
+    function savePostsState() {
+      const idx = posts.findIndex(p => p.id === currentPost.id);
+      if (idx !== -1) {
+        posts[idx] = currentPost;
+      }
+      localStorage.setItem('jolt_posts', JSON.stringify(posts));
+    }
+
+    function shareArticle(platform) {
+      const url = encodeURIComponent(window.location.href);
+      const title = encodeURIComponent(currentPost ? currentPost.title : document.title);
+      let shareUrl = '';
+
+      if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+      if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+      if (platform === 'whatsapp') shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
+      if (platform === 'telegram') shareUrl = `https://t.me/share/url?url=${url}&text=${title}`;
+
+      if (shareUrl) window.open(shareUrl, '_blank');
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Article link copied to clipboard!');
+      }).catch(() => {
+        alert('Copied URL: ' + window.location.href);
+      });
+    }
+
+    window.onload = init;
+  </script>
 </body>
 </html>
