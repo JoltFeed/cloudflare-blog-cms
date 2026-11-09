@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloudflare Blog CMS</title>
+  <title>JoltFeed - Professional Publication</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .reader-container { max-width: 680px; margin: 0 auto; }
@@ -15,332 +15,277 @@
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
 
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-      <a href="/" onclick="navigateToHome(event)" class="text-2xl font-black tracking-tight text-indigo-600 hover:text-indigo-700">
-        JoltFeed <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full ml-1">CMS</span>
+  <!-- Ad Slot 1: Top Above Header Banner -->
+  <div id="ad-slot-1-container" class="ad-slot bg-gray-100 border-b border-gray-200 py-2 hidden">
+    <div id="ad_slot_1"></div>
+  </div>
+
+  <!-- Main Navigation Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="./" onclick="navigateToHome(event)" class="flex items-center gap-2 group">
+        <div class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-lg tracking-wide">JF</div>
+        <span class="text-xl font-black tracking-tight text-gray-900 group-hover:text-blue-600 transition">JoltFeed</span>
       </a>
       <div class="flex items-center space-x-4">
-        <a href="/" onclick="navigateToHome(event)" class="text-sm font-medium text-gray-600 hover:text-gray-900">Home</a>
-        <a href="/admin/" class="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 rounded-lg transition">Admin Panel</a>
+        <a href="./" onclick="navigateToHome(event)" class="text-sm font-semibold text-gray-700 hover:text-blue-600 transition">Home</a>
+        <a href="./admin/" class="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg shadow-sm transition">Admin CMS</a>
       </div>
     </div>
   </header>
 
+  <!-- Ad Slot 2: Below Navigation Header -->
+  <div id="ad-slot-2-container" class="ad-slot max-w-4xl mx-auto px-4 py-2 hidden">
+    <div id="ad_slot_2"></div>
+  </div>
+
+  <!-- Article / Main Reader Container (Strict 680px Single Column) -->
   <main class="flex-grow py-8 px-4">
     <div class="reader-container" id="appContent">
-      <div id="loading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
-        <p class="text-sm text-gray-500 mt-2">Loading content...</p>
+      <div id="loading" class="text-center py-16">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+        <p class="text-sm text-gray-500 mt-2">Loading publication...</p>
       </div>
     </div>
   </main>
 
-  <footer class="bg-white border-t border-gray-200 py-6 mt-12 text-center text-sm text-gray-500">
-    <p>&copy; 2026 Cloudflare Blog CMS. Powered by Workers &amp; KV.</p>
-  </footer>
-
-  <div id="popupAdModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl max-w-lg w-full p-4 relative shadow-2xl">
-      <button onclick="closePopupAd()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">&times;</button>
-      <div id="popupAdContent" class="mt-2 text-center"></div>
-    </div>
+  <!-- Ad Slot 8: Bottom Footer Banner -->
+  <div id="ad-slot-8-container" class="ad-slot bg-gray-100 border-t border-gray-200 py-3 hidden">
+    <div id="ad_slot_8"></div>
   </div>
 
+  <footer class="bg-white border-t border-gray-200 py-8 text-center text-sm text-gray-500">
+    <div class="max-w-4xl mx-auto px-4">
+      <p>&copy; 2026 JoltFeed Publication. Powered by Cloudflare Workers.</p>
+    </div>
+  </footer>
+
   <script>
-    let state = window.__INITIAL_STATE__ || { posts: [], config: {} };
+    let state = { posts: [], config: {} };
 
-    const defaultPosts = [
-      {
-        id: "1",
-        title: "Welcome to Cloudflare Blog CMS",
-        category: "Technology",
-        excerpt: "An ultra-fast, serverless blog platform built on Cloudflare Workers and KV storage.",
-        content: "<p>Welcome to your new ultra-fast blog engine powered by Cloudflare Workers and KV.</p><h2>Key Features</h2><p>Designed for viral publishing with automatic social cards and AdsKeeper integration.</p>",
-        image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=630&fit=crop",
-        date: "2026-11-09",
-        author: "Admin",
-        likes: 12
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadState();
+      await syncStateFromApi();
+      renderApp();
+    });
+
+    function loadState() {
+      if (window.__INITIAL_STATE__ && window.__INITIAL_STATE__.posts) {
+        state = window.__INITIAL_STATE__;
+        return;
       }
-    ];
-
-    const defaultConfig = {
-      siteTitle: "JoltFeed Blog",
-      siteDesc: "Ultra-fast serverless blog engine"
-    };
-
-    function executeScripts(container) {
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-        } else {
-          newScript.textContent = oldScript.textContent;
-        }
-        oldScript.parentNode.replaceChild(newScript, oldScript);
-      });
-    }
-
-    function renderAdSlot(code, enabled) {
-      if (!enabled || !code || !code.trim()) return '';
-      const id = 'ad-' + Math.random().toString(36).substring(2, 9);
-      setTimeout(() => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.innerHTML = code;
-          executeScripts(el);
-        }
-      }, 50);
-      return `<div id="${id}" class="ad-slot my-6 py-2 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center text-xs text-gray-400"></div>`;
-    }
-
-    async function initApp() {
       try {
-        if (!state.posts || state.posts.length === 0) {
-          const resP = await fetch('/api/posts').catch(() => null);
-          if (resP && resP.ok) state.posts = await resP.json();
-        }
-        if (!state.config || Object.keys(state.config).length === 0) {
-          const resC = await fetch('/api/config').catch(() => null);
-          if (resC && resC.ok) state.config = await resC.json();
+        const pRaw = localStorage.getItem('cms_posts') || localStorage.getItem('blog_posts_v3') || localStorage.getItem('joltfeed_posts');
+        const cRaw = localStorage.getItem('cms_config') || localStorage.getItem('blog_config_v3');
+        state.posts = pRaw ? JSON.parse(pRaw) : [];
+        state.config = cRaw ? JSON.parse(cRaw) : {};
+      } catch (e) {}
+    }
+
+    async function syncStateFromApi() {
+      try {
+        const res = await fetch('/api/state');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.posts && data.posts.length > 0) {
+            state = data;
+            localStorage.setItem('cms_posts', JSON.stringify(state.posts));
+            if (state.config) localStorage.setItem('cms_config', JSON.stringify(state.config));
+          }
         }
       } catch (e) {}
-      if (!state.posts || state.posts.length === 0) state.posts = defaultPosts;
-      if (!state.config) state.config = defaultConfig;
-
-      handleRouting();
-      window.addEventListener('popstate', handleRouting);
-    }
-
-    function getPostIdFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('p') || params.get('post');
     }
 
     function navigateToHome(e) {
       if (e) e.preventDefault();
-      history.pushState(null, '', window.location.pathname);
-      renderHomepage();
+      history.pushState(null, '', './');
+      renderApp();
     }
 
-    function openArticle(id, e) {
-      if (e) e.preventDefault();
-      history.pushState(null, '', `?p=${id}`);
-      renderArticle(id);
-    }
+    function renderApp() {
+      renderAds();
+      const params = new URLSearchParams(window.location.search);
+      const postId = params.get('p') || params.get('post') || params.get('id');
 
-    function handleRouting() {
-      const id = getPostIdFromUrl();
-      if (id) renderArticle(id);
-      else renderHomepage();
-    }
-
-    function renderHomepage() {
-      document.title = state.config.siteTitle || "JoltFeed Blog";
-      const app = document.getElementById('appContent');
-      let html = `<div class="space-y-8">
-        <div class="border-b border-gray-200 pb-4 mb-6">
-          <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">${state.config.siteTitle || 'JoltFeed Blog'}</h1>
-          <p class="text-gray-600 mt-1">${state.config.siteDesc || 'Latest stories & updates'}</p>
-        </div>
-        <div class="space-y-8">`;
-
-      state.posts.forEach(post => {
-        const pId = post.id;
-        const img = post.image || post.featured_image || post.featuredImage || '';
-        html += `
-          <article class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition group">
-            ${img ? `<a href="?p=${pId}" onclick="openArticle('${pId}', event)"><img src="${img}" alt="${post.title}" class="w-full h-64 object-cover group-hover:opacity-95 transition"></a>` : ''}
-            <div class="p-6">
-              <div class="flex items-center space-x-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-2">
-                <span>${post.category || 'General'}</span>
-                <span>&bull;</span>
-                <span class="text-gray-400">${post.date || 'Recent'}</span>
-              </div>
-              <h2 class="text-2xl font-bold text-gray-900 group-hover:text-indigo-600 transition mb-3">
-                <a href="?p=${pId}" onclick="openArticle('${pId}', event)">${post.title}</a>
-              </h2>
-              <p class="text-gray-600 text-sm line-clamp-3 mb-4">${post.excerpt || post.summary || ''}</p>
-              <div class="flex items-center justify-between pt-2 border-t border-gray-100 text-sm">
-                <a href="?p=${pId}" onclick="openArticle('${pId}', event)" class="font-semibold text-indigo-600 hover:text-indigo-800">Read Full Story &rarr;</a>
-                <span class="text-xs text-gray-400">Short URL: ?p=${pId}</span>
-              </div>
-            </div>
-          </article>`;
-      });
-
-      html += `</div></div>`;
-      app.innerHTML = html;
-    }
-
-    function renderArticle(id) {
-      const post = state.posts.find(p => String(p.id) === String(id)) || state.posts[0];
-      if (!post) { renderHomepage(); return; }
-
-      document.title = `${post.title} - ${state.config.siteTitle || 'Blog'}`;
-      const app = document.getElementById('appContent');
-      const cfg = state.config || {};
-      const shareUrl = `${window.location.origin}${window.location.pathname}?p=${post.id}`;
-
-      let rawContent = post.content || `<p>${post.excerpt || ''}</p>`;
-      let paragraphs = [];
-      if (rawContent.includes('<p>')) {
-        paragraphs = rawContent.split(/<\/p>/i).filter(p => p.trim()).map(p => p.endsWith('>') ? p : p + '</p>');
-      } else {
-        paragraphs = rawContent.split(/\n+/).filter(p => p.trim()).map(p => `<p class="mb-4">${p}</p>`);
+      if (postId) {
+        const post = state.posts.find(item => String(item.id) === String(postId));
+        if (post) {
+          renderSinglePost(post);
+          return;
+        }
       }
+      renderArticleFeed();
+    }
 
-      const totalP = paragraphs.length;
-      const idx30 = Math.max(1, Math.floor(totalP * 0.30));
-      const idx60 = Math.max(2, Math.floor(totalP * 0.60));
-      const idx80 = Math.max(3, Math.floor(totalP * 0.80));
-
-      let bodyHtml = '';
-      paragraphs.forEach((p, index) => {
-        if (index === 0) bodyHtml += renderAdSlot(cfg.ad_before_p1, cfg.ad_before_p1_enabled !== false);
-        if (index === idx30 && totalP > 1) bodyHtml += renderAdSlot(cfg.ad_before_p30, cfg.ad_before_p30_enabled !== false);
-        if (index === idx60 && totalP > 2) bodyHtml += renderAdSlot(cfg.ad_p60, cfg.ad_p60_enabled !== false);
-        if (index === idx80 && totalP > 3) bodyHtml += renderAdSlot(cfg.ad_p80, cfg.ad_p80_enabled !== false);
-        bodyHtml += p;
-      });
-      bodyHtml += renderAdSlot(cfg.ad_after_post, cfg.ad_after_post_enabled !== false);
-
-      const featuredImg = post.image || post.featured_image || post.featuredImage || '';
-
-      let articleHtml = `
-        <article class="bg-white border border-gray-200 rounded-xl p-6 sm:p-8 shadow-sm">
-          <div class="mb-6">
-            <a href="/" onclick="navigateToHome(event)" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1">
-              <span>&larr; Back to all stories</span>
-            </a>
-          </div>
-          ${renderAdSlot(cfg.ad_before_title, cfg.ad_before_title_enabled !== false)}
-          <div class="flex items-center space-x-2 text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-2">
-            <span>${post.category || 'General'}</span>
-            <span>&bull;</span>
-            <span class="text-gray-400">${post.date || 'Recent'}</span>
-          </div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-6 leading-tight">${post.title}</h1>
-          ${featuredImg ? `<div class="mb-4"><img src="${featuredImg}" alt="${post.title}" class="w-full h-auto max-h-[450px] object-cover rounded-xl shadow-sm"></div>` : ''}
-          ${renderAdSlot(cfg.ad_under_image, cfg.ad_under_image_enabled !== false)}
-          <div class="prose max-w-none text-gray-800 leading-relaxed text-base sm:text-lg mb-8">
-            ${bodyHtml}
-          </div>
-          <div class="border-t border-b border-gray-200 py-4 my-6 flex flex-wrap items-center justify-between gap-4">
-            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Share Story:</span>
-            <div class="flex flex-wrap items-center gap-2">
-              <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}" target="_blank" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700">Facebook</a>
-              <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.title)}" target="_blank" class="px-3 py-1.5 bg-sky-500 text-white rounded-lg text-xs font-semibold hover:bg-sky-600">X / Twitter</a>
-              <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(post.title + ' ' + shareUrl)}" target="_blank" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700">WhatsApp</a>
-              <a href="https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(post.title)}" target="_blank" class="px-3 py-1.5 bg-sky-600 text-white rounded-lg text-xs font-semibold hover:bg-sky-700">Telegram</a>
-              <button onclick="copyShareLink('${shareUrl}')" class="px-3 py-1.5 bg-gray-700 text-white rounded-lg text-xs font-semibold hover:bg-gray-800"><span id="copyBtnText">Copy Link</span></button>
-            </div>
-          </div>
-          <div class="mt-8 space-y-6">
-            <div class="flex items-center space-x-4">
-              <button onclick="toggleLike('${post.id}')" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold hover:bg-indigo-100 flex items-center space-x-2 transition">
-                <span>&thumbsup;</span>
-                <span id="likeCount">${getLikes(post.id, post.likes || 0)}</span> Likes
-              </button>
-            </div>
-            <div class="pt-6 border-t border-gray-100">
-              <h3 class="text-xl font-bold text-gray-900 mb-4">Comments</h3>
-              <form onsubmit="addComment(event, '${post.id}')" class="space-y-3 mb-6">
-                <input type="text" id="commentAuthor" placeholder="Your Name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                <textarea id="commentText" placeholder="Write a comment..." rows="3" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">Post Comment</button>
-              </form>
-              <div id="commentsList" class="space-y-4">
-                ${renderComments(post.id)}
-              </div>
-            </div>
-          </div>
-        </article>`;
-
-      app.innerHTML = articleHtml;
-
-      if (cfg.ad_popup_enabled !== false && cfg.ad_popup && cfg.ad_popup.trim()) {
-        const popupModal = document.getElementById('popupAdModal');
-        const popupContent = document.getElementById('popupAdContent');
-        if (popupModal && popupContent) {
-          popupContent.innerHTML = cfg.ad_popup;
-          executeScripts(popupContent);
-          popupModal.classList.remove('hidden');
+    function renderAds() {
+      const ads = state.config?.ads || {};
+      for (let i = 1; i <= 8; i++) {
+        const slotEl = document.getElementById(`ad_slot_${i}`);
+        const containerEl = document.getElementById(`ad-slot-${i}-container`);
+        const code = ads[`ad_slot_${i}`] || ads[`ad${i}`];
+        if (code && slotEl) {
+          slotEl.innerHTML = code;
+          if (containerEl) containerEl.classList.remove('hidden');
         }
       }
     }
 
-    function closePopupAd() {
-      const modal = document.getElementById('popupAdModal');
-      if (modal) modal.classList.add('hidden');
-    }
+    function renderArticleFeed() {
+      const container = document.getElementById('appContent');
+      if (!container) return;
 
-    function copyShareLink(url) {
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = document.getElementById('copyBtnText');
-        if (btn) {
-          btn.textContent = 'Copied!';
-          setTimeout(() => { btn.textContent = 'Copy Link'; }, 2000);
-        }
-      });
-    }
-
-    function getLikes(id, defaultCount) {
-      const key = `likes_${id}`;
-      return localStorage.getItem(key) || defaultCount;
-    }
-
-    function toggleLike(id) {
-      const key = `likes_${id}`;
-      let count = parseInt(localStorage.getItem(key) || '0', 10);
-      count++;
-      localStorage.setItem(key, count);
-      const el = document.getElementById('likeCount');
-      if (el) el.textContent = count;
-    }
-
-    function renderComments(id) {
-      const key = `comments_${id}`;
-      const comments = JSON.parse(localStorage.getItem(key) || '[]');
-      if (comments.length === 0) return `<p class="text-sm text-gray-500 italic">No comments yet. Be the first to comment!</p>`;
-      return comments.map(c => `
-        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-          <div class="flex items-center justify-between text-xs font-bold text-gray-700 mb-1">
-            <span>${escapeHtml(c.author)}</span>
-            <span class="text-gray-400 font-normal">${c.date}</span>
+      if (!state.posts || state.posts.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200 text-center">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">No Articles Yet</h2>
+            <p class="text-gray-600 mb-4 text-sm">Check back soon or create articles in the admin dashboard.</p>
+            <a href="./admin/" class="inline-block bg-blue-600 text-white font-semibold text-sm px-4 py-2 rounded-lg">Go to Admin CMS</a>
           </div>
-          <p class="text-sm text-gray-800">${escapeHtml(c.text)}</p>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="space-y-8">
+          ${state.posts.map(post => `
+            <article class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+              ${post.image || post.featured_image ? `
+                <a href="?p=${post.id}">
+                  <img src="${post.image || post.featured_image}" alt="${escapeHtml(post.title)}" class="w-full h-64 object-cover" />
+                </a>
+              ` : ''}
+              <div class="p-6">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">${escapeHtml(post.category || 'General')}</span>
+                  <span class="text-gray-400 text-xs">&bull;</span>
+                  <span class="text-gray-500 text-xs">${escapeHtml(post.date || 'Recently')}</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition leading-snug">
+                  <a href="?p=${post.id}">${escapeHtml(post.title)}</a>
+                </h2>
+                <p class="text-gray-600 text-sm leading-relaxed mb-4">${escapeHtml(post.excerpt || post.summary || '')}</p>
+                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <a href="?p=${post.id}" class="text-blue-600 font-bold text-sm hover:underline flex items-center gap-1">Read Full Story &rarr;</a>
+                  <span class="text-xs text-gray-400">JoltFeed</span>
+                </div>
+              </div>
+            </article>
+          `).join('')}
         </div>
-      `).join('');
+      `;
     }
 
-    function addComment(e, id) {
+    function renderSinglePost(post) {
+      const container = document.getElementById('appContent');
+      if (!container) return;
+
+      const ads = state.config?.ads || {};
+      const ad3 = ads['ad_slot_3'] || ads['ad3'] ? `<div class="ad-slot my-4">${ads['ad_slot_3'] || ads['ad3']}</div>` : '';
+      const ad4 = ads['ad_slot_4'] || ads['ad4'] ? `<div class="ad-slot my-4">${ads['ad_slot_4'] || ads['ad4']}</div>` : '';
+      const ad5 = ads['ad_slot_5'] || ads['ad5'] ? `<div class="ad-slot my-4">${ads['ad_slot_5'] || ads['ad5']}</div>` : '';
+      const ad6 = ads['ad_slot_6'] || ads['ad6'] ? `<div class="ad-slot my-4">${ads['ad_slot_6'] || ads['ad6']}</div>` : '';
+      const ad7 = ads['ad_slot_7'] || ads['ad7'] ? `<div class="ad-slot my-4">${ads['ad_slot_7'] || ads['ad7']}</div>` : '';
+
+      // Format content and inject mid-article ad slots at paragraph 2 and 4
+      let contentHtml = post.content || '';
+      const paragraphs = contentHtml.split('</p>');
+      if (paragraphs.length > 2 && ad4) {
+        paragraphs[1] = paragraphs[1] + '</p>' + ad4;
+      }
+      if (paragraphs.length > 4 && ad5) {
+        paragraphs[3] = paragraphs[3] + '</p>' + ad5;
+      }
+      contentHtml = paragraphs.join(paragraphs.length <= 2 || paragraphs.length <= 4 ? '</p>' : '');
+
+      container.innerHTML = `
+        <article class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+          ${ad3}
+
+          <header class="mb-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">${escapeHtml(post.category || 'General')}</span>
+              <span class="text-gray-400 text-xs">&bull;</span>
+              <span class="text-gray-500 text-xs">${escapeHtml(post.date || 'Recently')}</span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-4">${escapeHtml(post.title)}</h1>
+            ${post.excerpt ? `<p class="text-lg text-gray-600 leading-relaxed font-normal">${escapeHtml(post.excerpt)}</p>` : ''}
+          </header>
+
+          ${post.image || post.featured_image ? `
+            <div class="mb-6">
+              <img src="${post.image || post.featured_image}" alt="${escapeHtml(post.title)}" class="w-full h-auto max-h-[420px] object-cover rounded-lg shadow-sm" />
+            </div>
+          ` : ''}
+
+          <div class="prose max-w-none text-gray-800 leading-relaxed text-base">
+            ${contentHtml}
+          </div>
+
+          ${ad6}
+
+          <!-- Social Share & Like Section -->
+          <div class="mt-8 pt-6 border-t border-gray-200 flex flex-wrap items-center justify-between gap-4">
+            <button onclick="likeArticle()" id="likeBtn" class="flex items-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2 rounded-lg font-bold text-sm transition">
+              ❤️ Like Article (<span id="likeCount">12</span>)
+            </button>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-gray-500 font-semibold">Share:</span>
+              <button onclick="shareLink()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-xs font-semibold">🔗 Copy Link</button>
+            </div>
+          </div>
+
+          ${ad7}
+
+          <!-- Comments Section -->
+          <section class="mt-8 pt-8 border-t border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Comments</h3>
+            <div class="space-y-4 mb-6" id="commentsList">
+              <div class="bg-gray-50 p-3.5 rounded-lg border border-gray-200 text-xs text-gray-700">
+                <span class="font-bold text-gray-900">Alex M.</span>: Great article! Really enjoyed reading this.
+              </div>
+            </div>
+            <form onsubmit="addComment(event)" class="flex gap-2">
+              <input type="text" id="commentInput" placeholder="Write a comment..." required class="flex-1 text-xs p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              <button type="submit" class="bg-blue-600 text-white font-semibold text-xs px-4 py-2.5 rounded-lg hover:bg-blue-700 transition">Post</button>
+            </form>
+          </section>
+
+        </article>
+      `;
+    }
+
+    function likeArticle() {
+      const countEl = document.getElementById('likeCount');
+      if (countEl) countEl.innerText = parseInt(countEl.innerText) + 1;
+    }
+
+    function shareLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Article link copied to clipboard!');
+    }
+
+    function addComment(e) {
       e.preventDefault();
-      const authorInput = document.getElementById('commentAuthor');
-      const textInput = document.getElementById('commentText');
-      if (!authorInput || !textInput) return;
-
-      const key = `comments_${id}`;
-      const comments = JSON.parse(localStorage.getItem(key) || '[]');
-      comments.push({
-        author: authorInput.value.trim(),
-        text: textInput.value.trim(),
-        date: new Date().toLocaleDateString()
-      });
-      localStorage.setItem(key, JSON.stringify(comments));
-      textInput.value = '';
-
+      const input = document.getElementById('commentInput');
       const list = document.getElementById('commentsList');
-      if (list) list.innerHTML = renderComments(id);
+      if (input && list && input.value.trim()) {
+        const div = document.createElement('div');
+        div.className = 'bg-gray-50 p-3.5 rounded-lg border border-gray-200 text-xs text-gray-700';
+        div.innerHTML = `<span class="font-bold text-gray-900">Reader</span>: ${escapeHtml(input.value.trim())}`;
+        list.appendChild(div);
+        input.value = '';
+      }
     }
 
     function escapeHtml(str) {
-      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
-
-    window.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
