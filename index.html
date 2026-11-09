@@ -11,6 +11,311 @@
     .prose video { width: 100%; border-radius: 8px; margin: 1.5rem 0; }
     .prose iframe { width: 100%; aspect-ratio: 16/9; border-radius: 8px; margin: 1.5rem 0; }
     .ad-slot { width: 100%; min-height: 50px; margin: 1.5rem 0; text-align: center; }
+    article, #postTitle, #postExcerpt, #postContent, #postBody, .article-content, .article-content * {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      word-wrap: break-word;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
+
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="./" onclick="navigateToHome(event)" class="flex items-center gap-2 group">
+        <div class="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-lg tracking-wide">JF</div>
+        <span class="text-xl font-black tracking-tight text-gray-900 group-hover:text-blue-600 transition">JoltFeed</span>
+      </a>
+      <div class="flex items-center space-x-4">
+        <a href="./" onclick="navigateToHome(event)" class="text-sm font-semibold text-gray-700 hover:text-blue-600 transition">Home</a>
+        <a href="./admin/" class="text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg shadow-sm transition">Admin CMS</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
+    <div id="home-view">
+      <div class="mb-8 border-b pb-4">
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Latest Stories</h1>
+        <p class="text-gray-500 mt-1">Explore articles on tech, development, and digital culture.</p>
+      </div>
+      <div id="posts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </div>
+
+    <div id="post-view" class="hidden">
+      <div class="mb-6">
+        <button onclick="navigateToHome(event)" class="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition">
+          &larr; Back to all stories
+        </button>
+      </div>
+
+      <div id="ad-before-title-container"></div>
+
+      <article class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 reader-container article-content">
+        <div class="mb-6">
+          <span id="post-category" class="inline-block px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full uppercase tracking-wider mb-3">Category</span>
+          <h1 id="postTitle" class="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight mb-4">Post Title</h1>
+          <div class="flex items-center text-sm text-gray-500 space-x-4 border-b border-gray-100 pb-4">
+            <span id="post-date">Date</span>
+            <span>&bull;</span>
+            <span>By JoltFeed Team</span>
+          </div>
+        </div>
+
+        <div id="post-image-container" class="mb-8">
+          <img id="post-image" src="" alt="" class="w-full h-auto rounded-xl shadow-sm max-h-[450px] object-cover">
+        </div>
+
+        <div id="ad-under-image-container"></div>
+
+        <div id="postExcerpt" class="text-lg font-medium text-gray-600 mb-8 italic border-l-4 border-blue-500 pl-4 py-1"></div>
+
+        <div id="postBody" class="prose max-w-none text-gray-800 leading-relaxed space-y-4"></div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="bg-white border-t border-gray-200 mt-12 py-6">
+    <div class="max-w-4xl mx-auto px-4 text-center text-sm text-gray-500">
+      &copy; 2026 JoltFeed. Powered by Cloudflare Workers.
+    </div>
+  </footer>
+
+  <script>
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function isTrue(val) {
+      return val === true || val === 'true' || val === 1 || val === '1';
+    }
+
+    function parseContentToBlocks(html) {
+      if (!html || !html.trim()) return [];
+      const div = document.createElement('div');
+      div.innerHTML = html;
+
+      const children = Array.from(div.childNodes);
+      const blocks = [];
+
+      children.forEach(child => {
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          const tag = child.tagName.toLowerCase();
+          if (['p', 'div', 'section', 'article', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol'].includes(tag)) {
+            blocks.push(child.outerHTML.trim());
+          } else {
+            const txt = child.textContent.trim();
+            if (txt) blocks.push(`<p>${child.outerHTML}</p>`);
+          }
+        } else if (child.nodeType === Node.TEXT_NODE) {
+          const text = child.textContent.trim();
+          if (text) {
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            lines.forEach(l => blocks.push(`<p>${escapeHtml(l)}</p>`));
+          }
+        }
+      });
+
+      if (blocks.length > 0) return blocks;
+
+      const parts = html.split(/<br\s*\/?>|\r?\n/gi).map(p => p.trim()).filter(Boolean);
+      return parts.length > 0 ? parts.map(p => p.startsWith('<') ? p : `<p>${p}</p>`) : [`<p>${html}</p>`];
+    }
+
+    async function fetchState() {
+      let localConfig = {};
+      let localPosts = [];
+      try { localConfig = JSON.parse(localStorage.getItem('cms_config')) || {}; } catch(e){}
+      try { localPosts = JSON.parse(localStorage.getItem('cms_posts')) || []; } catch(e){}
+
+      try {
+        const res = await fetch('/api/state');
+        if (res.ok) {
+          const data = await res.json();
+          const serverConfig = data.config || {};
+          const serverPosts = data.posts || [];
+
+          const serverTime = serverConfig.updatedAt || 0;
+          const localTime = localConfig.updatedAt || 0;
+
+          if (localConfig && localTime > serverTime) {
+            fetch('/api/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ config: localConfig, posts: localPosts.length > 0 ? localPosts : serverPosts })
+            }).catch(e => console.error(e));
+          } else if (serverConfig && Object.keys(serverConfig).length > 0) {
+            localStorage.setItem('cms_config', JSON.stringify(serverConfig));
+            localConfig = serverConfig;
+          }
+
+          if (serverPosts && serverPosts.length > 0 && localPosts.length === 0) {
+            localStorage.setItem('cms_posts', JSON.stringify(serverPosts));
+            localPosts = serverPosts;
+          }
+        }
+      } catch(e) {}
+
+      return { config: localConfig, posts: localPosts };
+    }
+
+    function renderHeaderAnalytics(config) {
+      if (isTrue(config.header_code_enabled) && config.header_code) {
+        const div = document.createElement('div');
+        div.innerHTML = config.header_code;
+        document.head.appendChild(div);
+      }
+      if (isTrue(config.analytics_code_enabled) && config.analytics_code) {
+        const div = document.createElement('div');
+        div.innerHTML = config.analytics_code;
+        document.body.appendChild(div);
+      }
+    }
+
+    function renderHome(posts) {
+      document.getElementById('home-view').classList.remove('hidden');
+      document.getElementById('post-view').classList.add('hidden');
+
+      const grid = document.getElementById('posts-grid');
+      if (!posts || posts.length === 0) {
+        grid.innerHTML = '<div class="col-span-2 text-center py-12 text-gray-500">No stories found yet. Check back soon!</div>';
+        return;
+      }
+
+      grid.innerHTML = posts.map(p => `
+        <article class="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer flex flex-col" onclick="openPost('${p.id}')">
+          <img src="${p.image || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80'}" class="w-full h-48 object-cover">
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">${escapeHtml(p.category || 'General')}</span>
+              <h2 class="text-xl font-bold text-gray-900 mt-2 mb-2 line-clamp-2">${escapeHtml(p.title)}</h2>
+              <p class="text-gray-600 text-sm line-clamp-3">${escapeHtml(p.excerpt || '')}</p>
+            </div>
+            <div class="mt-4 pt-3 border-t text-xs text-gray-400 font-medium">
+              ${p.date || 'Today'}
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function openPost(postId) {
+      window.location.hash = 'post/' + postId;
+    }
+
+    function navigateToHome(e) {
+      if (e) e.preventDefault();
+      window.location.hash = '';
+      loadApp();
+    }
+
+    function renderPostDetail(post, config) {
+      document.getElementById('home-view').classList.add('hidden');
+      document.getElementById('post-view').classList.remove('hidden');
+
+      document.getElementById('postTitle').textContent = post.title || 'Untitled';
+      document.getElementById('post-category').textContent = post.category || 'General';
+      document.getElementById('post-date').textContent = post.date || 'Today';
+      document.getElementById('postExcerpt').textContent = post.excerpt || '';
+
+      const imgEl = document.getElementById('post-image');
+      if (post.image) {
+        imgEl.src = post.image;
+        document.getElementById('post-image-container').classList.remove('hidden');
+      } else {
+        document.getElementById('post-image-container').classList.add('hidden');
+      }
+
+      const beforeTitleContainer = document.getElementById('ad-before-title-container');
+      if (isTrue(config.ad_before_title_enabled) && config.ad_before_title) {
+        beforeTitleContainer.innerHTML = `<div class="ad-slot ad-before-title mb-6">${config.ad_before_title}</div>`;
+      } else {
+        beforeTitleContainer.innerHTML = '';
+      }
+
+      const underImageContainer = document.getElementById('ad-under-image-container');
+      if (isTrue(config.ad_under_image_enabled) && config.ad_under_image) {
+        underImageContainer.innerHTML = `<div class="ad-slot ad-under-image mb-6">${config.ad_under_image}</div>`;
+      } else {
+        underImageContainer.innerHTML = '';
+      }
+
+      const blocks = parseContentToBlocks(post.content || '');
+      const total = blocks.length;
+
+      const adBeforeParagraph = (isTrue(config.ad_before_paragraph_enabled) && config.ad_before_paragraph) ? `<div class="ad-slot ad-before-paragraph mb-4">${config.ad_before_paragraph}</div>` : '';
+      const ad30Percent = (isTrue(config.ad_30_percent_enabled) && config.ad_30_percent) ? `<div class="ad-slot ad-30-percent mb-4">${config.ad_30_percent}</div>` : '';
+      const ad60Percent = (isTrue(config.ad_60_percent_enabled) && config.ad_60_percent) ? `<div class="ad-slot ad-60-percent mb-4">${config.ad_60_percent}</div>` : '';
+      const ad80Percent = (isTrue(config.ad_80_percent_enabled) && config.ad_80_percent) ? `<div class="ad-slot ad-80-percent mb-4">${config.ad_80_percent}</div>` : '';
+      const adAfterPost = (isTrue(config.ad_after_post_enabled) && config.ad_after_post) ? `<div class="ad-slot ad-after-post mb-4">${config.ad_after_post}</div>` : '';
+
+      const pos30 = Math.max(1, Math.floor(total * 0.30));
+      const pos60 = Math.max(1, Math.floor(total * 0.60));
+      const pos80 = Math.max(1, Math.floor(total * 0.80));
+
+      let bodyHtml = '';
+      if (adBeforeParagraph) bodyHtml += adBeforeParagraph;
+
+      for (let i = 0; i < total; i++) {
+        if (i === pos30 && ad30Percent) bodyHtml += ad30Percent;
+        if (i === pos60 && ad60Percent) bodyHtml += ad60Percent;
+        if (i === pos80 && ad80Percent) bodyHtml += ad80Percent;
+        bodyHtml += blocks[i];
+      }
+
+      if (adAfterPost) bodyHtml += adAfterPost;
+
+      document.getElementById('postBody').innerHTML = bodyHtml;
+
+      if (isTrue(config.ad_popup_enabled) && config.ad_popup) {
+        const oldModal = document.getElementById('ad-popup-modal');
+        if (oldModal) oldModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'ad-popup-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4';
+        modal.innerHTML = `
+          <div class="relative bg-white dark:bg-gray-800 rounded-xl p-6 max-w-lg w-full shadow-2xl border border-gray-200 dark:border-gray-700">
+            <button onclick="document.getElementById('ad-popup-modal').remove()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">&times;</button>
+            <div class="ad-content text-center font-medium">${config.ad_popup}</div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+    }
+
+    async function loadApp() {
+      const { config, posts } = await fetchState();
+      renderHeaderAnalytics(config);
+
+      const hash = window.location.hash;
+      if (hash.startsWith('#post/')) {
+        const postId = hash.replace('#post/', '');
+        const post = posts.find(p => p.id === postId);
+        if (post) {
+          renderPostDetail(post, config);
+          return;
+        }
+      }
+      renderHome(posts);
+    }
+
+    window.addEventListener('hashchange', loadApp);
+    document.addEventListener('DOMContentLoaded', loadApp);
+  </script>
+</body>
+</html>viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JoltFeed - Professional Publication</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .reader-container { max-width: 680px; margin: 0 auto; }
+    .prose img { width: 100%; border-radius: 8px; margin: 1.5rem 0; }
+    .prose video { width: 100%; border-radius: 8px; margin: 1.5rem 0; }
+    .prose iframe { width: 100%; aspect-ratio: 16/9; border-radius: 8px; margin: 1.5rem 0; }
+    .ad-slot { width: 100%; min-height: 50px; margin: 1.5rem 0; text-align: center; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased min-h-screen flex flex-col">
