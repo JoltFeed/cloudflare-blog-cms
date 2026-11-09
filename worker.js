@@ -1,28 +1,4 @@
-const defaultConfig = {
-  adminUsername: "admin",
-  adminPassword: "123",
-  enableBeforeTitle: false,
-  adBeforeTitle: "",
-  enableUnderImage: false,
-  adUnderImage: "",
-  enableBeforeParagraph: false,
-  adBeforeParagraph: "",
-  enablePara30: false,
-  adPara30: "",
-  enablePara60: false,
-  adPara60: "",
-  enablePara80: false,
-  adPara80: "",
-  enableAfterPost: false,
-  adAfterPost: "",
-  enablePopupAd: false,
-  adPopupAd: "",
-  popupDelaySeconds: 3,
-  enableHeaderCode: false,
-  customHeaderCode: "",
-  enableAnalytics: false,
-  analyticsCode: ""
-};
+const FALLBACK_IMG = "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80";
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -34,221 +10,140 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-function base64ToUint8Array(base64Str) {
-  const base64 = base64Str.includes(',') ? base64Str.split(',')[1] : base64Str;
-  const binaryStr = atob(base64);
-  const len = binaryStr.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryStr.charCodeAt(i);
-  }
-  return bytes;
-}
-
-const FALLBACK_JPEG_BASE64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
-
 async function getState(request, env) {
   if (globalThis.__BLOG_STATE__) {
     return globalThis.__BLOG_STATE__;
   }
-  const cache = caches.default;
-  const stateUrl = new URL('/__internal_blog_state__', request.url);
   try {
-    const cached = await cache.match(stateUrl);
-    if (cached) {
-      const data = await cached.json();
-      globalThis.__BLOG_STATE__ = data;
-      return data;
+    const cache = caches.default;
+    const cacheKey = new URL('/api/state-cache', request.url).href;
+    const cachedResp = await cache.match(cacheKey);
+    if (cachedResp) {
+      const state = await cachedResp.json();
+      globalThis.__BLOG_STATE__ = state;
+      return state;
     }
   } catch (e) {}
 
   let posts = [];
   try {
-    const postsReq = new Request(new URL('/posts.json', request.url));
-    const postsRes = await env.ASSETS.fetch(postsReq);
-    if (postsRes.ok) {
-      posts = await postsRes.json();
+    const postsResp = await env.ASSETS.fetch(new URL('/posts.json', request.url));
+    if (postsResp.ok) {
+      posts = await postsResp.json();
     }
   } catch (e) {}
 
-  const state = { posts, config: defaultConfig };
+  let config = {};
+  try {
+    const configResp = await env.ASSETS.fetch(new URL('/config.json', request.url));
+    if (configResp.ok) {
+      config = await configResp.json();
+    }
+  } catch (e) {}
+
+  const state = { posts, config };
   globalThis.__BLOG_STATE__ = state;
   return state;
 }
 
-class MetaRewriter {
-  constructor(metaHtml, customHeaderCode, analyticsCode) {
-    this.metaHtml = metaHtml;
-    this.customHeaderCode = customHeaderCode;
-    this.analyticsCode = analyticsCode;
+function base64ToUint8Array(base64) {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
   }
-  element(element) {
-    let toInject = this.metaHtml;
-    if (this.customHeaderCode) {
-      toInject += '\n' + this.customHeaderCode;
-    }
-    if (this.analyticsCode) {
-      toInject += '\n' + this.analyticsCode;
-    }
-    element.prepend(toInject, { html: true });
-  }
-}
-
-class MetaRemover {
-  element(element) {
-    element.remove();
-  }
+  return bytes;
 }
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    if (url.pathname === '/api/save' && request.method === 'POST') {
-      try {
-        const body = await request.json();
-        const posts = body.posts || [];
-        const config = body.config || defaultConfig;
-        const state = { posts, config };
-        globalThis.__BLOG_STATE__ = state;
-
-        const cache = caches.default;
-        const stateUrl = new URL('/__internal_blog_state__', request.url);
-        await cache.put(stateUrl, new Response(JSON.stringify(state), {
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'public, max-age=31536000'
-          }
-        }));
-
-        for (const post of posts) {
-          const img = post.image || post.featured_image || post.featuredImage;
-          if (img && typeof img === 'string' && img.startsWith('data:image/')) {
-            try {
-              const bytes = base64ToUint8Array(img);
-              const imgCacheUrl = new URL(`/og-image/${post.id}.jpg`, request.url);
-              await cache.put(imgCacheUrl, new Response(bytes, {
-                headers: {
-                  'Content-Type': 'image/jpeg',
-                  'Cache-Control': 'public, max-age=31536000'
-                }
-              }));
-            } catch (e) {}
-          }
-        }
-
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-    }
-
-    if (url.pathname === '/api/state' && request.method === 'GET') {
-      const state = await getState(request, env);
-      return new Response(JSON.stringify(state), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store'
-        }
-      });
-    }
-
     if (url.pathname.startsWith('/og-image/')) {
-      const cache = caches.default;
-      const cached = await cache.match(request.url);
-      if (cached) return cached;
-
-      const match = url.pathname.match(/\/og-image\/([^.\/]+)/);
-      const postId = match ? match[1] : null;
-
       const state = await getState(request, env);
-      const post = (state.posts || []).find(p => String(p.id) === String(postId));
-      const img = post ? (post.image || post.featured_image || post.featuredImage) : null;
-
-      if (img && typeof img === 'string') {
-        if (img.startsWith('data:image/')) {
-          const bytes = base64ToUint8Array(img);
-          const res = new Response(bytes, {
+      const postId = url.pathname.replace('/og-image/', '').replace('.jpg', '');
+      const post = (state.posts || []).find(p => String(p.id) === String(postId)) || (state.posts || [])[0];
+      const imgData = post ? (post.image || post.featured_image || post.featuredImage || post.img) : null;
+      if (imgData && imgData.startsWith('data:image/')) {
+        const base64Data = imgData.split(',')[1];
+        if (base64Data) {
+          const buffer = base64ToUint8Array(base64Data);
+          return new Response(buffer, {
             headers: {
               'Content-Type': 'image/jpeg',
-              'Cache-Control': 'public, max-age=31536000'
+              'Cache-Control': 'public, max-age=86400'
             }
           });
-          await cache.put(request.url, res.clone());
-          return res;
-        } else if (img.startsWith('http://') || img.startsWith('https://')) {
-          return Response.redirect(img, 302);
         }
       }
+      return Response.redirect(FALLBACK_IMG, 302);
+    }
 
-      const fallbackBytes = base64ToUint8Array(FALLBACK_JPEG_BASE64);
-      return new Response(fallbackBytes, {
-        headers: {
-          'Content-Type': 'image/jpeg',
-          'Cache-Control': 'public, max-age=3600'
-        }
+    if (url.pathname === '/api/state') {
+      const state = await getState(request, env);
+      return new Response(JSON.stringify(state), {
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    let assetReq = request;
-    if (url.pathname === '/admin' || url.pathname === '/admin/') {
-      assetReq = new Request(new URL('/index.html', request.url), request);
-    }
-
-    const response = await env.ASSETS.fetch(assetReq);
+    const response = await env.ASSETS.fetch(request);
     const contentType = response.headers.get('content-type') || '';
 
-    if (contentType.includes('text/html')) {
+    if (contentType.includes('text/html') || request.headers.get('accept')?.includes('text/html')) {
       const state = await getState(request, env);
+      const posts = state.posts || [];
       const postId = url.searchParams.get('post') || url.searchParams.get('id');
-      const post = (state.posts || []).find(p => String(p.id) === String(postId));
 
-      let title = post ? post.title : (url.searchParams.get('og_title') || 'Cloudflare Blog CMS');
-      let desc = post
-        ? (post.excerpt || (post.content ? post.content.replace(/<[^>]*>/g, '').slice(0, 160) : ''))
-        : (url.searchParams.get('og_desc') || 'High performance serverless blog powered by Cloudflare Workers.');
-      let rawImg = post ? (post.image || post.featured_image || post.featuredImage) : url.searchParams.get('og_img');
-
-      let ogImage = '';
-      if (post && rawImg && rawImg.startsWith('data:image/')) {
-        ogImage = new URL(`/og-image/${post.id}.jpg`, request.url).href;
-      } else if (rawImg && (rawImg.startsWith('http://') || rawImg.startsWith('https://'))) {
-        ogImage = rawImg;
-      } else if (rawImg && rawImg.startsWith('/')) {
-        ogImage = new URL(rawImg, request.url).href;
-      } else {
-        ogImage = new URL(`/og-image/${postId || 'default'}.jpg`, request.url).href;
+      let post = null;
+      if (postId) {
+        post = posts.find(p => String(p.id) === String(postId));
+      }
+      if (!post && posts.length > 0) {
+        post = posts[0];
       }
 
-      const metaHtml = `
-        <meta property="og:type" content="article">
-        <meta property="og:url" content="${escapeHtml(request.url)}">
-        <meta property="og:title" content="${escapeHtml(title)}">
-        <meta property="og:description" content="${escapeHtml(desc)}">
-        <meta property="og:image" content="${escapeHtml(ogImage)}">
-        <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}">
-        <meta property="og:image:width" content="1200">
-        <meta property="og:image:height" content="630">
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="${escapeHtml(title)}">
-        <meta name="twitter:description" content="${escapeHtml(desc)}">
-        <meta name="twitter:image" content="${escapeHtml(ogImage)}">
-      `.trim();
+      const qTitle = url.searchParams.get('og_title') || url.searchParams.get('t');
+      const qDesc = url.searchParams.get('og_desc') || url.searchParams.get('d');
+      const qImg = url.searchParams.get('og_img') || url.searchParams.get('img');
 
-      const customHeaderCode = (state.config && state.config.enableHeaderCode && state.config.customHeaderCode) ? state.config.customHeaderCode : '';
-      const analyticsCode = (state.config && state.config.enableAnalytics && state.config.analyticsCode) ? state.config.analyticsCode : '';
+      const title = qTitle || (post ? (post.title || post.name) : '') || 'Cloudflare Blog CMS';
+      const desc = qDesc || (post ? (post.excerpt || post.description || post.summary || post.content) : '') || 'Modern blog CMS hosted on Cloudflare Workers & Pages.';
+      let rawImg = qImg || (post ? (post.image || post.featured_image || post.featuredImage || post.img) : '') || FALLBACK_IMG;
 
-      const rewriter = new HTMLRewriter()
-        .on('meta[property^="og:"]', new MetaRemover())
-        .on('meta[name^="twitter:"]', new MetaRemover())
-        .on('head', new MetaRewriter(metaHtml, customHeaderCode, analyticsCode));
+      let ogImage = rawImg;
+      if (rawImg.startsWith('data:image/')) {
+        const pId = (post && post.id) ? post.id : (postId || 'default');
+        ogImage = new URL('/og-image/' + pId + '.jpg', request.url).href;
+      } else if (rawImg.startsWith('/')) {
+        ogImage = new URL(rawImg, request.url).href;
+      }
 
-      return rewriter.transform(response);
+      let html = await response.text();
+
+      html = html.replace(/<meta\s+(?:property|name)=["'](?:og:|twitter:)[^"']*["'][^>]*>/gi, '');
+
+      const metaTags = `
+    <meta property="og:url" content="${escapeHtml(request.url)}">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="${escapeHtml(title)}">
+    <meta property="og:description" content="${escapeHtml(desc)}">
+    <meta property="og:image" content="${escapeHtml(ogImage)}">
+    <meta property="og:image:secure_url" content="${escapeHtml(ogImage)}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escapeHtml(title)}">
+    <meta name="twitter:description" content="${escapeHtml(desc)}">
+    <meta name="twitter:image" content="${escapeHtml(ogImage)}">
+`;
+
+      html = html.replace(/<head>/i, '<head>' + metaTags);
+
+      return new Response(html, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers
+      });
     }
 
     return response;
