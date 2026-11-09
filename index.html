@@ -3,319 +3,511 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cloudflare Blog CMS</title>
+  <title>Admin Panel - Cloudflare Blog CMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .prose img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }
-    .prose video { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }
-    .prose iframe { width: 100%; aspect-ratio: 16/9; border-radius: 0.5rem; margin: 1.5rem 0; }
-    .ad-slot { min-height: 90px; text-align: center; margin: 1.5rem 0; }
-  </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
+<body class="bg-gray-100 text-gray-900 font-sans min-h-screen">
 
-  <!-- Progress Bar -->
-  <div id="progressBar" class="fixed top-0 left-0 h-1 bg-indigo-600 z-50 transition-all duration-150" style="width: 0%"></div>
-
-  <!-- Header / Navigation -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="/" onclick="goHome(event)" class="text-2xl font-bold tracking-tight text-indigo-600 flex items-center gap-2">
-        <span>⚡ Cloudflare Blog</span>
-      </a>
-      <div class="flex items-center gap-3">
-        <a href="/admin/" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-          Admin Dashboard
-        </a>
+  <!-- Admin Login View -->
+  <div id="loginView" class="min-h-screen flex items-center justify-center px-4">
+    <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 max-w-md w-full">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-indigo-600">Admin Login</h1>
+        <p class="text-sm text-gray-500 mt-1">Enter admin credentials to access dashboard</p>
       </div>
-    </div>
-  </header>
-
-  <!-- Main Container -->
-  <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
-    
-    <!-- Home View -->
-    <div id="homeView">
-      <div class="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <form onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <h1 class="text-3xl font-extrabold text-gray-900">Latest Stories</h1>
-          <p class="text-gray-500 mt-1">Explore articles on web development, Cloudflare Workers, and performance.</p>
+          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Username</label>
+          <input type="text" id="loginUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Username" />
         </div>
-        <div class="w-full md:w-72">
-          <input type="text" id="searchInput" placeholder="Search articles..." oninput="filterPosts()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Password</label>
+          <input type="password" id="adminPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Password" />
         </div>
-      </div>
-
-      <div id="postsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Posts rendered dynamically -->
-      </div>
-    </div>
-
-    <!-- Single Post View -->
-    <div id="postView" class="hidden max-w-3xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-gray-100">
-      <button onclick="goHome(event)" class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
-        ← Back to all posts
-      </button>
-
-      <!-- Slot 1: Before Title -->
-      <div id="ad-slot-1" class="ad-slot"></div>
-
-      <h1 id="postTitle" class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-4"></h1>
-      <div id="postMeta" class="text-sm text-gray-500 mb-6 flex items-center gap-4 border-b border-gray-100 pb-4"></div>
-
-      <!-- Slot 2: Under Image -->
-      <div id="postImageContainer" class="mb-6"></div>
-      <div id="ad-slot-2" class="ad-slot"></div>
-
-      <!-- Slot 3: Before Paragraph -->
-      <div id="ad-slot-3" class="ad-slot"></div>
-
-      <!-- Article Content -->
-      <div id="postContent" class="prose prose-indigo max-w-none text-gray-800 text-lg leading-relaxed"></div>
-
-      <!-- Slot 7: After Post -->
-      <div id="ad-slot-7" class="ad-slot"></div>
-
-      <!-- Share Buttons -->
-      <div class="mt-8 pt-6 border-t border-gray-200">
-        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Share this article</h3>
-        <div class="flex flex-wrap gap-3" id="shareButtons"></div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Popup Ad (Slot 8) -->
-  <div id="popupAd" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl p-6 max-w-lg w-full relative shadow-2xl">
-      <button onclick="closePopupAd()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold px-2 py-1">×</button>
-      <div id="ad-slot-8" class="ad-slot"></div>
+        <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
+          Sign In
+        </button>
+      </form>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-500">
-    <p>© 2026 Cloudflare Blog CMS. Powered by Cloudflare Workers.</p>
-  </footer>
+  <!-- Admin Dashboard View -->
+  <div id="dashboardView" class="hidden min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+          <span class="text-xl font-bold text-indigo-600">CMS Admin</span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="../" target="_blank" class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition">View Site &rarr;</a>
+          <button onclick="logout()" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium">Logout</button>
+        </div>
+      </div>
+      <!-- Tabs Navigation -->
+      <div class="max-w-7xl mx-auto px-4 flex space-x-2 border-t border-gray-100 overflow-x-auto">
+        <button id="tab-posts" onclick="switchTab('posts')" class="px-4 py-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600">Posts</button>
+        <button id="tab-editor" onclick="switchTab('editor')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Create / Edit Post</button>
+        <button id="tab-ads" onclick="switchTab('ads')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Ad Placements (8 Slots)</button>
+        <button id="tab-codes" onclick="switchTab('codes')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Header & Analytics Codes</button>
+        <button id="tab-settings" onclick="switchTab('settings')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Change Password</button>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+      <!-- Tab 1: Posts -->
+      <div id="view-posts" class="space-y-4">
+        <div class="flex justify-between items-center">
+          <h2 class="text-xl font-bold text-gray-800">Blog Posts</h2>
+          <button onclick="newPost()" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition">+ New Post</button>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+                <th class="p-4">Title</th>
+                <th class="p-4">Slug</th>
+                <th class="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="postsList" class="divide-y divide-gray-100 text-sm">
+              <tr><td colspan="3" class="p-4 text-gray-400 text-center">Loading posts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Create / Edit Post -->
+      <div id="view-editor" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
+        <h2 id="editorHeading" class="text-xl font-bold text-gray-800">Create / Edit Post</h2>
+        <form onsubmit="savePost(event)" class="space-y-4">
+          <input type="hidden" id="postId" />
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Title</label>
+            <input type="text" id="postTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Slug</label>
+            <input type="text" id="postSlug" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Upload Featured Image from Device</label>
+            <input type="file" accept="image/*" id="featuredImageFile" onchange="handleFileUpload(event)" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Featured Image URL</label>
+            <input type="text" id="postImage" oninput="previewImage()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="https://... or base64" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Live Featured Image Preview</label>
+            <div id="imagePreviewBox" class="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center min-h-[100px]">
+              <img id="imagePreview" src="" alt="Preview" class="max-h-48 rounded shadow-sm hidden" />
+              <span id="noPreviewLabel" class="text-xs text-gray-400">No image selected</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Content (HTML allowed)</label>
+            <textarea id="postContent" rows="10" required class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+          </div>
+          <div class="flex justify-end space-x-3">
+            <button type="button" onclick="switchTab('posts')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700">Save Post</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab 3: Ad Placements (8 Slots) -->
+      <div id="view-ads" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Ad Placements (8 Slots)</h2>
+          <p class="text-xs text-gray-500 mt-1">Manage advertisement code blocks and toggle status for 8 unique placements.</p>
+        </div>
+        <form onsubmit="saveAds(event)" class="space-y-4">
+          <div id="adsListContainer" class="space-y-4">
+
+            <!-- Slot 1: Before Title -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">1. Before Title</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_before_title_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_before_title" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+            <!-- Slot 2: Under Image -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">2. Under Image</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_under_image_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_under_image" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+            <!-- Slot 3: Before Paragraph -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">3. Before Paragraph</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_before_paragraph_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_before_paragraph" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+            <!-- Slot 4: Before 30% of Paragraphs -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">4. Before 30% of Paragraphs</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_30_percent_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_30_percent" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+            <!-- Slot 5: 60% of Paragraphs -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">5. 60% of Paragraphs</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_60_percent_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_60_percent" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+            <!-- Slot 6: 80% of Paragraphs -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">6. 80% of Paragraphs</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_80_percent_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_80_percent" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+            <!-- Slot 7: After Post -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">7. After Post</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_after_post_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_after_post" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+            <!-- Slot 8: Pop-Up Ad -->
+            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm text-gray-800">8. Pop-Up Ad</span>
+                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                  <input type="checkbox" id="ad_popup_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span>ON/OFF</span>
+                </label>
+              </div>
+              <textarea id="ad_popup" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
+            </div>
+
+          </div>
+          <div class="pt-4 flex justify-end">
+            <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg hover:bg-indigo-700 transition">Save Ad Placements</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab 4: Header & Analytics Codes -->
+      <div id="view-codes" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Header & Analytics Codes</h2>
+          <p class="text-xs text-gray-500 mt-1">Inject scripts into &lt;head&gt; or tracking codes on pages.</p>
+        </div>
+        <form onsubmit="saveCodes(event)" class="space-y-4">
+          <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="font-bold text-sm text-gray-800">Custom Header Code (&lt;head&gt;)</label>
+              <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                <input type="checkbox" id="customHeaderEnabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                <span>ON/OFF</span>
+              </label>
+            </div>
+            <textarea id="customHeaderCode" rows="4" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="<script>...</script>"></textarea>
+          </div>
+          <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="font-bold text-sm text-gray-800">Analytics / Tracking Code</label>
+              <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
+                <input type="checkbox" id="analyticsEnabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                <span>ON/OFF</span>
+              </label>
+            </div>
+            <textarea id="analyticsCode" rows="4" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="<script>...</script>"></textarea>
+          </div>
+          <div class="pt-4 flex justify-end">
+            <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg hover:bg-indigo-700 transition">Save Codes</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab 5: Change Password -->
+      <div id="view-settings" class="hidden max-w-md mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Change Admin Password</h2>
+          <p class="text-xs text-gray-500 mt-1">Update login username and password credentials.</p>
+        </div>
+        <form onsubmit="savePassword(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Admin Username</label>
+            <input type="text" id="adminUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Admin Username" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">New Password</label>
+            <input type="password" id="newPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="New Password" />
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg hover:bg-indigo-700 transition">Update Password</button>
+        </form>
+      </div>
+
+    </main>
+  </div>
 
   <script>
     let posts = [];
-    let config = {};
 
-    function getAdCode(slotKey) {
-      if (!config.ads) return '';
-      const ad = config.ads[slotKey];
-      if (!ad || ad.enabled === false) return '';
-      return ad.code || '';
-    }
-
-    function renderAd(elementId, slotKey) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      const code = getAdCode(slotKey);
-      if (code) {
-        el.innerHTML = code;
-        executeScripts(el);
-        el.classList.remove('hidden');
+    window.addEventListener('DOMContentLoaded', () => {
+      const logged = localStorage.getItem('cms_logged_in');
+      if (logged) {
+        showDashboard();
       } else {
-        el.innerHTML = '';
-        el.classList.add('hidden');
+        showLogin();
       }
+    });
+
+    function showLogin() {
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('dashboardView').classList.add('hidden');
     }
 
-    function executeScripts(container) {
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-        oldScript.parentNode.replaceChild(newScript, oldScript);
+    function showDashboard() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('dashboardView').classList.remove('hidden');
+      loadPosts();
+      loadConfig();
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      localStorage.setItem('cms_logged_in', '1');
+      showDashboard();
+    }
+
+    function logout() {
+      localStorage.removeItem('cms_logged_in');
+      showLogin();
+    }
+
+    function switchTab(tab) {
+      const tabs = ['posts', 'editor', 'ads', 'codes', 'settings'];
+      tabs.forEach(t => {
+        const v = document.getElementById('view-' + t);
+        const b = document.getElementById('tab-' + t);
+        if (t === tab) {
+          if (v) v.classList.remove('hidden');
+          if (b) {
+            b.classList.add('border-indigo-600', 'text-indigo-600');
+            b.classList.remove('border-transparent', 'text-gray-500');
+          }
+        } else {
+          if (v) v.classList.add('hidden');
+          if (b) {
+            b.classList.remove('border-indigo-600', 'text-indigo-600');
+            b.classList.add('border-transparent', 'text-gray-500');
+          }
+        }
       });
     }
 
-    async function init() {
-      if (window.__INITIAL_STATE__) {
-        posts = window.__INITIAL_STATE__.posts || [];
-        config = window.__INITIAL_STATE__.config || {};
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('postImage').value = evt.target.result;
+          previewImage();
+        };
+        reader.readAsDataURL(file);
       }
+    }
 
+    function previewImage() {
+      const val = document.getElementById('postImage').value.trim();
+      const img = document.getElementById('imagePreview');
+      const label = document.getElementById('noPreviewLabel');
+      if (val) {
+        img.src = val;
+        img.classList.remove('hidden');
+        label.classList.add('hidden');
+      } else {
+        img.src = '';
+        img.classList.add('hidden');
+        label.classList.remove('hidden');
+      }
+    }
+
+    async function loadPosts() {
       try {
-        const res = await fetch('/api/state?t=' + Date.now());
-        if (res.ok) {
-          const state = await res.json();
-          posts = state.posts || posts;
-          config = state.config || config;
-        }
-      } catch (e) {}
-
-      route();
-    }
-
-    function route() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const postId = urlParams.get('p') || urlParams.get('post');
-
-      if (postId) {
-        const post = posts.find(p => String(p.id) === String(postId));
-        if (post) {
-          openPost(post, false);
-          return;
-        }
+        const res = await fetch('/api/posts');
+        posts = await res.json();
+        renderPosts();
+      } catch (err) {
+        renderPosts();
       }
-      showHome();
     }
 
-    function showHome() {
-      document.getElementById('homeView').classList.remove('hidden');
-      document.getElementById('postView').classList.add('hidden');
-      renderPosts(posts);
-    }
-
-    function filterPosts() {
-      const q = document.getElementById('searchInput').value.toLowerCase();
-      const filtered = posts.filter(p => (p.title && p.title.toLowerCase().includes(q)) || (p.content && p.content.toLowerCase().includes(q)));
-      renderPosts(filtered);
-    }
-
-    function renderPosts(list) {
-      const container = document.getElementById('postsGrid');
-      if (!list || list.length === 0) {
-        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No posts published yet.</div>';
+    function renderPosts() {
+      const el = document.getElementById('postsList');
+      if (!posts || posts.length === 0) {
+        el.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">No posts found</td></tr>';
         return;
       }
-
-      container.innerHTML = list.map(post => {
-        const img = post.image || post.featured_image || post.featuredImage || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80';
-        const date = post.date ? new Date(post.date).toLocaleDateString() : '';
-        const excerpt = post.excerpt || (post.content ? post.content.replace(/<[^>]*>/g, '').substring(0, 120) + '...' : '');
-
-        return `
-          <div onclick="openPostById('${post.id}')" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition cursor-pointer flex flex-col">
-            <img src="${img}" alt="${escapeHtml(post.title)}" class="w-full h-48 object-cover" />
-            <div class="p-5 flex-grow flex flex-col justify-between">
-              <div>
-                <span class="text-xs font-semibold uppercase text-indigo-600 tracking-wider">${escapeHtml(post.category || 'General')}</span>
-                <h2 class="text-xl font-bold text-gray-900 mt-1 mb-2 line-clamp-2">${escapeHtml(post.title)}</h2>
-                <p class="text-sm text-gray-600 line-clamp-3">${escapeHtml(excerpt)}</p>
-              </div>
-              <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                <span>${date}</span>
-                <span class="text-indigo-600 font-medium">Read Article →</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+      el.innerHTML = posts.map(p => `
+        <tr>
+          <td class="p-4 font-semibold text-gray-800">${p.title || ''}</td>
+          <td class="p-4 text-gray-500">${p.slug || ''}</td>
+          <td class="p-4 text-right space-x-2">
+            <button onclick="editPost('${p.id}')" class="text-indigo-600 hover:underline font-semibold">Edit</button>
+            <button onclick="deletePost('${p.id}')" class="text-red-600 hover:underline font-semibold">Delete</button>
+          </td>
+        </tr>
+      `).join('');
     }
 
-    function openPostById(id) {
-      const post = posts.find(p => String(p.id) === String(id));
-      if (post) openPost(post, true);
+    function newPost() {
+      document.getElementById('postId').value = '';
+      document.getElementById('postTitle').value = '';
+      document.getElementById('postSlug').value = '';
+      document.getElementById('postImage').value = '';
+      document.getElementById('featuredImageFile').value = '';
+      document.getElementById('postContent').value = '';
+      previewImage();
+      document.getElementById('editorHeading').innerText = 'Create Post';
+      switchTab('editor');
     }
 
-    function openPost(post, updateHistory = true) {
-      if (updateHistory) {
-        const shortUrl = '?p=' + encodeURIComponent(post.id);
-        window.history.pushState({ postId: post.id }, '', shortUrl);
-      }
+    function editPost(id) {
+      const p = posts.find(item => item.id == id);
+      if (!p) return;
+      document.getElementById('postId').value = p.id;
+      document.getElementById('postTitle').value = p.title || '';
+      document.getElementById('postSlug').value = p.slug || '';
+      document.getElementById('postImage').value = p.image || '';
+      document.getElementById('postContent').value = p.content || '';
+      previewImage();
+      document.getElementById('editorHeading').innerText = 'Edit Post';
+      switchTab('editor');
+    }
 
-      document.getElementById('homeView').classList.add('hidden');
-      document.getElementById('postView').classList.remove('hidden');
-      window.scrollTo(0, 0);
+    async function savePost(e) {
+      e.preventDefault();
+      const payload = {
+        id: document.getElementById('postId').value || undefined,
+        title: document.getElementById('postTitle').value,
+        slug: document.getElementById('postSlug').value,
+        image: document.getElementById('postImage').value,
+        content: document.getElementById('postContent').value
+      };
+      await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'post', data: payload })
+      });
+      switchTab('posts');
+      loadPosts();
+    }
 
-      document.getElementById('postTitle').innerText = post.title || '';
-      document.getElementById('postMeta').innerHTML = `
-        <span>By ${escapeHtml(post.author || 'Admin')}</span>
-        <span>•</span>
-        <span>${post.date ? new Date(post.date).toLocaleDateString() : ''}</span>
-        <span>•</span>
-        <span class="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-medium">${escapeHtml(post.category || 'General')}</span>
-      `;
+    async function deletePost(id) {
+      if (!confirm('Delete post?')) return;
+      await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'delete_post', id })
+      });
+      loadPosts();
+    }
 
-      const img = post.image || post.featured_image || post.featuredImage;
-      const imgContainer = document.getElementById('postImageContainer');
-      if (img) {
-        imgContainer.innerHTML = `<img src="${img}" alt="${escapeHtml(post.title)}" class="w-full max-h-[450px] object-cover rounded-xl shadow-sm" />`;
-      } else {
-        imgContainer.innerHTML = '';
-      }
-
-      let contentHtml = post.content || '';
-      const paragraphs = contentHtml.split(/(<\/p>|<br\s*\/?>\s*<br\s*\/?>)/i);
-      if (paragraphs.length > 3) {
-        const total = paragraphs.length;
-        const p30 = Math.floor(total * 0.3);
-        const p60 = Math.floor(total * 0.6);
-        const p80 = Math.floor(total * 0.8);
-
-        let formatted = '';
-        paragraphs.forEach((p, index) => {
-          formatted += p;
-          if (index === p30 && getAdCode('slot4')) {
-            formatted += `<div class="ad-slot">${getAdCode('slot4')}</div>`;
-          }
-          if (index === p60 && getAdCode('slot5')) {
-            formatted += `<div class="ad-slot">${getAdCode('slot5')}</div>`;
-          }
-          if (index === p80 && getAdCode('slot6')) {
-            formatted += `<div class="ad-slot">${getAdCode('slot6')}</div>`;
-          }
+    async function loadConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const cfg = await res.json();
+        const slots = ['before_title', 'under_image', 'before_paragraph', '30_percent', '60_percent', '80_percent', 'after_post', 'popup'];
+        slots.forEach(s => {
+          if (cfg['ad_' + s]) document.getElementById('ad_' + s).value = cfg['ad_' + s];
+          if (cfg['ad_' + s + '_enabled']) document.getElementById('ad_' + s + '_enabled').checked = true;
         });
-        contentHtml = formatted;
-      }
-
-      const contentEl = document.getElementById('postContent');
-      contentEl.innerHTML = contentHtml;
-      executeScripts(contentEl);
-
-      renderAd('ad-slot-1', 'slot1');
-      renderAd('ad-slot-2', 'slot2');
-      renderAd('ad-slot-3', 'slot3');
-      renderAd('ad-slot-7', 'slot7');
-
-      if (getAdCode('slot8')) {
-        renderAd('ad-slot-8', 'slot8');
-        document.getElementById('popupAd').classList.remove('hidden');
-      }
-
-      const shareUrl = encodeURIComponent(window.location.origin + '/?p=' + post.id);
-      const shareTitle = encodeURIComponent(post.title);
-      document.getElementById('shareButtons').innerHTML = `
-        <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" class="px-3.5 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition">Facebook</a>
-        <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}" target="_blank" class="px-3.5 py-1.5 bg-sky-500 text-white text-xs font-semibold rounded-lg hover:bg-sky-600 transition">X / Twitter</a>
-        <a href="https://api.whatsapp.com/send?text=${shareTitle}%20${shareUrl}" target="_blank" class="px-3.5 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition">WhatsApp</a>
-        <a href="https://t.me/share/url?url=${shareUrl}&text=${shareTitle}" target="_blank" class="px-3.5 py-1.5 bg-sky-600 text-white text-xs font-semibold rounded-lg hover:bg-sky-700 transition">Telegram</a>
-        <button onclick="copyShareLink('${window.location.origin}/?p=${post.id}')" class="px-3.5 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 transition">Copy Link</button>
-      `;
+        if (cfg.customHeaderCode) document.getElementById('customHeaderCode').value = cfg.customHeaderCode;
+        if (cfg.customHeaderEnabled) document.getElementById('customHeaderEnabled').checked = true;
+        if (cfg.analyticsCode) document.getElementById('analyticsCode').value = cfg.analyticsCode;
+        if (cfg.analyticsEnabled) document.getElementById('analyticsEnabled').checked = true;
+        if (cfg.adminUsername) document.getElementById('adminUsername').value = cfg.adminUsername;
+      } catch (err) {}
     }
 
-    function closePopupAd() {
-      document.getElementById('popupAd').classList.add('hidden');
+    async function saveAds(e) {
+      e.preventDefault();
+      const data = {};
+      const slots = ['before_title', 'under_image', 'before_paragraph', '30_percent', '60_percent', '80_percent', 'after_post', 'popup'];
+      slots.forEach(s => {
+        data['ad_' + s] = document.getElementById('ad_' + s).value;
+        data['ad_' + s + '_enabled'] = document.getElementById('ad_' + s + '_enabled').checked;
+      });
+      await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'config', data })
+      });
+      alert('Ad placements saved!');
     }
 
-    function copyShareLink(link) {
-      navigator.clipboard.writeText(link).then(() => alert('Link copied to clipboard!'));
+    async function saveCodes(e) {
+      e.preventDefault();
+      const data = {
+        customHeaderCode: document.getElementById('customHeaderCode').value,
+        customHeaderEnabled: document.getElementById('customHeaderEnabled').checked,
+        analyticsCode: document.getElementById('analyticsCode').value,
+        analyticsEnabled: document.getElementById('analyticsEnabled').checked
+      };
+      await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'config', data })
+      });
+      alert('Header & Analytics codes saved!');
     }
 
-    function goHome(e) {
-      if (e) e.preventDefault();
-      window.history.pushState({}, '', '/');
-      showHome();
+    async function savePassword(e) {
+      e.preventDefault();
+      const username = document.getElementById('adminUsername').value;
+      const password = document.getElementById('newPassword').value;
+      await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'password', username, password })
+      });
+      alert('Password updated!');
     }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    window.addEventListener('popstate', route);
-    window.addEventListener('scroll', () => {
-      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const scrolled = (winScroll / height) * 100;
-      document.getElementById('progressBar').style.width = scrolled + '%';
-    });
-
-    init();
   </script>
 </body>
 </html>
