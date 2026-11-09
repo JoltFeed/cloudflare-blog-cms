@@ -1,877 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cloudflare Blog CMS</title>
-  <meta property="og:image" content="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .prose img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }
     .prose video { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }
     .prose iframe { width: 100%; aspect-ratio: 16/9; border-radius: 0.5rem; margin: 1.5rem 0; }
-    .ad-container { min-height: 90px; text-align: center; }
+    .ad-slot { min-height: 90px; text-align: center; margin: 1.5rem 0; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
 
-  <!-- Reading Progress Bar -->
-  <div id="progressBar" class="fixed top-0 left-0 h-1 bg-indigo-600 z-50 transition-all duration-150" style="width: 0%;"></div>
+  <!-- Progress Bar -->
+  <div id="progressBar" class="fixed top-0 left-0 h-1 bg-indigo-600 z-50 transition-all duration-150" style="width: 0%"></div>
 
-  <!-- Main Navigation Header -->
+  <!-- Header / Navigation -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="./" onclick="routeTo('home', event)" class="text-2xl font-bold tracking-tight text-indigo-600 flex items-center gap-2">
+      <a href="/" onclick="goHome(event)" class="text-2xl font-bold tracking-tight text-indigo-600 flex items-center gap-2">
         <span>⚡ Cloudflare Blog</span>
       </a>
-      <div id="navActions" class="flex items-center gap-3">
-        <button onclick="routeTo('admin', event)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+      <div class="flex items-center gap-3">
+        <a href="/admin/" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition">
           Admin Dashboard
-        </button>
+        </a>
       </div>
     </div>
   </header>
 
   <!-- Main Container -->
   <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
-
-    <!-- FRONTEND: Home View -->
-    <div id="viewHome">
-      <section class="text-center py-8 mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-lg px-6">
-        <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">Welcome to Cloudflare Blog</h1>
-        <p class="text-indigo-100 text-lg max-w-2xl mx-auto mb-6">High-performance serverless blog platform built on Cloudflare Workers and KV Storage.</p>
-        <div class="max-w-md mx-auto flex gap-2">
-          <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Search articles..." class="w-full px-4 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 shadow-inner">
-        </div>
-      </section>
-
-      <!-- Category Filter Tabs -->
-      <div id="categoryTabs" class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar">
-        <!-- Injected dynamically -->
-      </div>
-
-      <!-- Articles Grid -->
-      <div id="postsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Injected dynamically -->
-      </div>
-
-      <!-- Empty State -->
-      <div id="emptyGridState" class="hidden text-center py-16">
-        <p class="text-gray-500 text-lg font-medium">No posts found matching your criteria.</p>
-      </div>
-    </div>
-
-    <!-- FRONTEND: Article Post Detail View -->
-    <div id="viewPost" class="hidden">
-      <article class="max-w-[680px] mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-gray-100">
-
-        <!-- Ad 1: Before Title -->
-        <div id="slotBeforeTitle" class="ad-container mb-6 hidden"></div>
-
-        <div class="mb-6">
-          <span id="postCategory" class="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 font-semibold text-xs rounded-full mb-3 uppercase tracking-wider">Category</span>
-          <h1 id="postTitle" class="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight mb-4">Post Title</h1>
-          <div class="flex items-center gap-3 text-sm text-gray-500 border-b border-gray-100 pb-4">
-            <span class="font-medium text-gray-700" id="postAuthor">Author</span>
-            <span>•</span>
-            <span id="postDate">Date</span>
-          </div>
-        </div>
-
-        <!-- Featured Image & Ad 2: Under Image -->
-        <div id="postImageContainer" class="mb-8 rounded-xl overflow-hidden hidden">
-          <img id="postFeaturedImage" class="w-full h-auto object-cover max-h-[450px]" src="" alt="">
-        </div>
-        <div id="slotUnderImage" class="ad-container my-6 hidden"></div>
-
-        <!-- Article Content (Dynamic Ads 3-6 inserted here) -->
-        <div id="postContent" class="prose prose-indigo max-w-none text-gray-700 leading-relaxed space-y-4 mb-8"></div>
-
-        <!-- Ad 7: After Post -->
-        <div id="slotAfterPost" class="ad-container my-6 hidden"></div>
-
-        <!-- Author / Share Bar -->
-        <div class="border-t border-gray-100 pt-6 mt-8 flex flex-wrap items-center justify-between gap-4">
-          <button onclick="routeTo('home', event)" class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
-            ← Back to Articles
-          </button>
-          <div class="flex items-center gap-2">
-            <button onclick="sharePost()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1">
-              🔗 Share
-            </button>
-          </div>
-        </div>
-      </article>
-
-      <!-- Recommended Articles -->
-      <section class="max-w-[680px] mx-auto mt-12">
-        <h3 class="text-xl font-bold text-gray-900 mb-6">Recommended Posts</h3>
-        <div id="recommendedGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <!-- Injected dynamically -->
-        </div>
-      </section>
-    </div>
-
-    <!-- BACKEND: Admin Login View -->
-    <div id="viewAdminLogin" class="hidden max-w-md mx-auto my-12">
-      <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <h2 class="text-2xl font-bold text-gray-900 mb-2 text-center">Admin Login</h2>
-        <p class="text-gray-500 text-sm text-center mb-6">Enter your administrative credentials to continue.</p>
-        <form onsubmit="handleLogin(event)" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
-            <input type="text" id="loginUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-colors">
-            Log In
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- BACKEND: Admin Dashboard View -->
-    <div id="viewAdminDashboard" class="hidden">
-      <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+    
+    <!-- Home View -->
+    <div id="homeView">
+      <div class="mb-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-extrabold text-gray-900">Admin Control Panel</h1>
-          <p class="text-gray-500 text-sm">Manage articles, monetization ad slots, and system settings.</p>
+          <h1 class="text-3xl font-extrabold text-gray-900">Latest Stories</h1>
+          <p class="text-gray-500 mt-1">Explore articles on web development, Cloudflare Workers, and performance.</p>
         </div>
-        <button onclick="handleLogout()" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-sm rounded-lg transition-colors">
-          Logout
-        </button>
-      </div>
-
-      <!-- Admin Tabs Navigation -->
-      <div class="flex border-b border-gray-200 mb-6 gap-4">
-        <button id="tabBtnPosts" onclick="switchAdminTab('posts')" class="pb-3 border-b-2 border-indigo-600 font-bold text-indigo-600 text-sm">Articles</button>
-        <button id="tabBtnAds" onclick="switchAdminTab('ads')" class="pb-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 text-sm">AdsKeeper Manager</button>
-      </div>
-
-      <!-- TAB 1: Posts Management -->
-      <div id="adminTabPosts">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold text-gray-800">Articles Directory</h2>
-          <button onclick="openPostModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2">
-            + New Article
-          </button>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table class="w-full text-left text-sm text-gray-600">
-            <thead class="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
-              <tr>
-                <th class="px-6 py-3">Title</th>
-                <th class="px-6 py-3">Category</th>
-                <th class="px-6 py-3">Date</th>
-                <th class="px-6 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="adminPostsTable">
-              <!-- Injected dynamically -->
-            </tbody>
-          </table>
+        <div class="w-full md:w-72">
+          <input type="text" id="searchInput" placeholder="Search articles..." oninput="filterPosts()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
       </div>
 
-      <!-- TAB 2: AdsKeeper Manager -->
-      <div id="adminTabAds" class="hidden">
-        <form onsubmit="saveAdsConfig(event)" class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
-          <h2 class="text-xl font-bold text-gray-900 border-b pb-3">AdsKeeper & Ad Placements</h2>
-          <p class="text-sm text-gray-500">Configure global ad container codes and automated article inline ad insertion points.</p>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Ad 1: Before Title -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 1: Before Title</span>
-                <input type="checkbox" id="enableBeforeTitle" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <textarea id="adBeforeTitle" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-
-            <!-- Ad 2: Under Image -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 2: Under Featured Image</span>
-                <input type="checkbox" id="enableUnderImage" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <textarea id="adUnderImage" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-
-            <!-- Ad 3: Before Paragraph 1 -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 3: Before Paragraph 1</span>
-                <input type="checkbox" id="enableBeforeParagraph" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <textarea id="adBeforeParagraph" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-
-            <!-- Ad 4: 30% of Paragraphs -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 4: Before 30% Paragraphs</span>
-                <input type="checkbox" id="enablePara30" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <textarea id="adP30" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-
-            <!-- Ad 5: 60% of Paragraphs -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 5: Before 60% Paragraphs</span>
-                <input type="checkbox" id="enablePara60" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <textarea id="adP60" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-
-            <!-- Ad 6: 80% of Paragraphs -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 6: Before 80% Paragraphs</span>
-                <input type="checkbox" id="enablePara80" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <textarea id="adP80" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-
-            <!-- Ad 7: After Post -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 7: After Post Content</span>
-                <input type="checkbox" id="enableAfterPost" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <textarea id="adAfterPost" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-
-            <!-- Ad 8: Pop-up Ad Overlay -->
-            <div class="p-4 border rounded-xl bg-gray-50">
-              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
-                <span>Ad Slot 8: Pop-up Overlay Ad</span>
-                <input type="checkbox" id="enablePopupAd" class="w-4 h-4 text-indigo-600 rounded">
-              </label>
-              <div class="mb-2 flex items-center gap-2">
-                <span class="text-xs text-gray-600">Delay (seconds):</span>
-                <input type="number" id="popupDelaySeconds" value="3" min="1" max="60" class="w-20 px-2 py-1 text-xs border rounded">
-              </div>
-              <textarea id="adPopupAd" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
-            </div>
-          </div>
-
-          <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-colors">
-            Save Ad Settings
-          </button>
-        </form>
+      <div id="postsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Posts rendered dynamically -->
       </div>
     </div>
 
+    <!-- Single Post View -->
+    <div id="postView" class="hidden max-w-3xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-gray-100">
+      <button onclick="goHome(event)" class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
+        ← Back to all posts
+      </button>
+
+      <!-- Slot 1: Before Title -->
+      <div id="ad-slot-1" class="ad-slot"></div>
+
+      <h1 id="postTitle" class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight mb-4"></h1>
+      <div id="postMeta" class="text-sm text-gray-500 mb-6 flex items-center gap-4 border-b border-gray-100 pb-4"></div>
+
+      <!-- Slot 2: Under Image -->
+      <div id="postImageContainer" class="mb-6"></div>
+      <div id="ad-slot-2" class="ad-slot"></div>
+
+      <!-- Slot 3: Before Paragraph -->
+      <div id="ad-slot-3" class="ad-slot"></div>
+
+      <!-- Article Content -->
+      <div id="postContent" class="prose prose-indigo max-w-none text-gray-800 text-lg leading-relaxed"></div>
+
+      <!-- Slot 7: After Post -->
+      <div id="ad-slot-7" class="ad-slot"></div>
+
+      <!-- Share Buttons -->
+      <div class="mt-8 pt-6 border-t border-gray-200">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Share this article</h3>
+        <div class="flex flex-wrap gap-3" id="shareButtons"></div>
+      </div>
+    </div>
   </main>
 
-  <!-- Footer -->
-  <footer class="bg-white border-t border-gray-200 mt-auto py-6">
-    <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
-      <p>© 2026 Cloudflare Blog CMS. Powered by Cloudflare Workers & KV.</p>
+  <!-- Popup Ad (Slot 8) -->
+  <div id="popupAd" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl p-6 max-w-lg w-full relative shadow-2xl">
+      <button onclick="closePopupAd()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold px-2 py-1">×</button>
+      <div id="ad-slot-8" class="ad-slot"></div>
     </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-sm text-gray-500">
+    <p>© 2026 Cloudflare Blog CMS. Powered by Cloudflare Workers.</p>
   </footer>
 
-  <!-- POP-UP AD OVERLAY MODAL -->
-  <div id="popupAdModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 max-w-lg w-full relative shadow-2xl">
-      <button onclick="closePopupAd()" class="absolute top-3 right-3 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full font-bold flex items-center justify-center text-lg z-10">&times;</button>
-      <div id="slotPopupAd" class="ad-container my-2"></div>
-    </div>
-  </div>
-
-  <!-- ARTICLE MODAL (CREATE / EDIT) -->
-  <div id="postModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <h3 id="modalTitle" class="text-2xl font-bold mb-4">Create New Article</h3>
-      <form onsubmit="handleSavePost(event)" class="space-y-4">
-        <input type="hidden" id="editPostId">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-          <input type="text" id="postModalTitle" required class="w-full px-4 py-2 border rounded-lg">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-          <input type="text" id="postModalCategory" required placeholder="Technology, Lifestyle..." class="w-full px-4 py-2 border rounded-lg">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Featured Image URL</label>
-          <input type="url" id="postModalImage" placeholder="https://..." class="w-full px-4 py-2 border rounded-lg">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Content (HTML supported)</label>
-          <textarea id="postModalContent" rows="8" required class="w-full px-4 py-2 border rounded-lg font-mono text-sm"></textarea>
-        </div>
-        <div class="flex justify-end gap-3 pt-4">
-          <button type="button" onclick="closePostModal()" class="px-4 py-2 border rounded-lg text-gray-600">Cancel</button>
-          <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg">Save Article</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- JavaScript Logic -->
   <script>
-    const blogState = {
-      posts: [
-        {
-          id: "1",
-          title: "Getting Started with Cloudflare Workers",
-          category: "Technology",
-          date: "2026-11-01",
-          author: "Admin",
-          image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
-          excerpt: "Learn how to build and deploy high-performance serverless applications at the edge using Cloudflare Workers.",
-          content: "<p>Cloudflare Workers provides a serverless execution environment that allows you to create entirely new applications or augment existing ones without configuring or maintaining infrastructure.</p><p>With Workers, your applications run on Cloudflare's global network in hundreds of cities worldwide, delivering instant speed and reliability to users everywhere.</p><p>Key advantages include low latency, automatic scaling, and seamless integration with KV storage, R2, and D1 databases.</p><p>Start building today by leveraging JavaScript, TypeScript, or WebAssembly to supercharge your web services.</p>"
-        },
-        {
-          id: "2",
-          title: "Monetizing Web Content with Ad Networks",
-          category: "Monetization",
-          date: "2026-11-03",
-          author: "Admin",
-          image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
-          excerpt: "Strategies for placing programmatic ads effectively across blog posts to maximize revenue without compromising user experience.",
-          content: "<p>Effective content monetization requires striking a careful balance between ad visibility and visitor retention.</p><p>Placing ads strategically—such as above the fold, between paragraph sections, and after the main article body—helps maintain high engagement.</p><p>Modern ad networks like AdsKeeper offer responsive native units that blend smoothly into your site design.</p><p>Always monitor page loading times and user feedback to ensure your monetization strategy enhances your digital business.</p>"
-        },
-        {
-          id: "3",
-          title: "Building Scalable Edge Applications",
-          category: "Architecture",
-          date: "2026-11-05",
-          author: "Admin",
-          image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
-          excerpt: "Explore architectural patterns for designing resilient, global serverless web solutions.",
-          content: "<p>Edge computing moves data processing closer to where data is generated, reducing latency and bandwidth use.</p><p>By distributing serverless functions across global edge nodes, developers can deliver sub-millisecond response times.</p><p>Caching static assets and dynamically executing business logic at the edge ensures high availability even during traffic spikes.</p><p>Embrace edge-first architecture to build the next generation of fast, secure web applications.</p>"
-        }
-      ],
-      config: {
-        enableBeforeTitle: false,
-        adBeforeTitle: "",
-        enableUnderImage: false,
-        adUnderImage: "",
-        enableBeforeParagraph: false,
-        adBeforeParagraph: "",
-        enablePara30: false,
-        adPara30: "",
-        enablePara60: false,
-        adPara60: "",
-        enablePara80: false,
-        adPara80: "",
-        enableAfterPost: false,
-        adAfterPost: "",
-        enablePopupAd: false,
-        popupDelaySeconds: 3,
-        adPopupAd: ""
-      },
-      currentCategory: 'All',
-      searchQuery: '',
-      isLoggedIn: false
-    };
+    let posts = [];
+    let config = {};
 
-    document.addEventListener('DOMContentLoaded', () => {
-      initBlog();
-    });
+    function getAdCode(slotKey) {
+      if (!config.ads) return '';
+      const ad = config.ads[slotKey];
+      if (!ad || ad.enabled === false) return '';
+      return ad.code || '';
+    }
 
-    async function initBlog() {
-      try {
-        const res = await fetch('/api/posts');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            blogState.posts = data;
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to fetch posts from API, using defaults', e);
-      }
-
-      try {
-        const resCfg = await fetch('/api/config');
-        if (resCfg.ok) {
-          const cfgData = await resCfg.json();
-          blogState.config = { ...blogState.config, ...cfgData };
-        }
-      } catch (e) {
-        console.warn('Failed to fetch config from API, using defaults', e);
-      }
-
-      renderCategories();
-      renderPostsGrid();
-
-      const params = new URLSearchParams(window.location.search);
-      const postId = params.get('post');
-      if (postId) {
-        showPostDetailView(postId);
+    function renderAd(elementId, slotKey) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const code = getAdCode(slotKey);
+      if (code) {
+        el.innerHTML = code;
+        executeScripts(el);
+        el.classList.remove('hidden');
+      } else {
+        el.innerHTML = '';
+        el.classList.add('hidden');
       }
     }
 
-    function routeTo(view, event) {
-      if (event) event.preventDefault();
-      if (view === 'home') {
-        history.pushState({}, '', window.location.pathname);
-        document.getElementById('viewPost').classList.add('hidden');
-        document.getElementById('viewAdminLogin').classList.add('hidden');
-        document.getElementById('viewAdminDashboard').classList.add('hidden');
-        document.getElementById('viewHome').classList.remove('hidden');
-        renderPostsGrid();
-      } else if (view === 'admin') {
-        if (blogState.isLoggedIn) {
-          showAdminDashboard();
-        } else {
-          document.getElementById('viewHome').classList.add('hidden');
-          document.getElementById('viewPost').classList.add('hidden');
-          document.getElementById('viewAdminDashboard').classList.add('hidden');
-          document.getElementById('viewAdminLogin').classList.remove('hidden');
-        }
-      }
-    }
-
-    function renderCategories() {
-      const tabsContainer = document.getElementById('categoryTabs');
-      if (!tabsContainer) return;
-
-      const categories = ['All', ...new Set(blogState.posts.map(p => p.category).filter(Boolean))];
-      tabsContainer.innerHTML = categories.map(cat => `
-        <button onclick="selectCategory('${cat}')" class="px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${blogState.currentCategory === cat ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}">
-          ${cat}
-        </button>
-      `).join('');
-    }
-
-    function selectCategory(cat) {
-      blogState.currentCategory = cat;
-      renderCategories();
-      renderPostsGrid();
-    }
-
-    function handleSearch() {
-      const q = document.getElementById('searchInput').value.toLowerCase();
-      blogState.searchQuery = q;
-      renderPostsGrid();
-    }
-
-    function renderPostsGrid() {
-      const grid = document.getElementById('postsGrid');
-      const emptyState = document.getElementById('emptyGridState');
-      if (!grid) return;
-
-      const filtered = blogState.posts.filter(p => {
-        const matchCat = blogState.currentCategory === 'All' || p.category === blogState.currentCategory;
-        const matchQuery = !blogState.searchQuery || 
-                           (p.title && p.title.toLowerCase().includes(blogState.searchQuery)) || 
-                           (p.excerpt && p.excerpt.toLowerCase().includes(blogState.searchQuery));
-        return matchCat && matchQuery;
+    function executeScripts(container) {
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        oldScript.parentNode.replaceChild(newScript, oldScript);
       });
+    }
 
-      if (filtered.length === 0) {
-        grid.innerHTML = '';
-        emptyState.classList.remove('hidden');
+    async function init() {
+      if (window.__INITIAL_STATE__) {
+        posts = window.__INITIAL_STATE__.posts || [];
+        config = window.__INITIAL_STATE__.config || {};
+      }
+
+      try {
+        const res = await fetch('/api/state?t=' + Date.now());
+        if (res.ok) {
+          const state = await res.json();
+          posts = state.posts || posts;
+          config = state.config || config;
+        }
+      } catch (e) {}
+
+      route();
+    }
+
+    function route() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const postId = urlParams.get('p') || urlParams.get('post');
+
+      if (postId) {
+        const post = posts.find(p => String(p.id) === String(postId));
+        if (post) {
+          openPost(post, false);
+          return;
+        }
+      }
+      showHome();
+    }
+
+    function showHome() {
+      document.getElementById('homeView').classList.remove('hidden');
+      document.getElementById('postView').classList.add('hidden');
+      renderPosts(posts);
+    }
+
+    function filterPosts() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = posts.filter(p => (p.title && p.title.toLowerCase().includes(q)) || (p.content && p.content.toLowerCase().includes(q)));
+      renderPosts(filtered);
+    }
+
+    function renderPosts(list) {
+      const container = document.getElementById('postsGrid');
+      if (!list || list.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No posts published yet.</div>';
         return;
       }
 
-      emptyState.classList.add('hidden');
-      grid.innerHTML = filtered.map(post => `
-        <div onclick="openPostById('${post.id}')" class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col group">
-          ${post.image ? `<img src="${post.image}" alt="" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">` : ''}
-          <div class="p-6 flex-grow flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
-                <span class="font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">${post.category || 'General'}</span>
-                <span>${post.date || ''}</span>
+      container.innerHTML = list.map(post => {
+        const img = post.image || post.featured_image || post.featuredImage || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80';
+        const date = post.date ? new Date(post.date).toLocaleDateString() : '';
+        const excerpt = post.excerpt || (post.content ? post.content.replace(/<[^>]*>/g, '').substring(0, 120) + '...' : '');
+
+        return `
+          <div onclick="openPostById('${post.id}')" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition cursor-pointer flex flex-col">
+            <img src="${img}" alt="${escapeHtml(post.title)}" class="w-full h-48 object-cover" />
+            <div class="p-5 flex-grow flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-semibold uppercase text-indigo-600 tracking-wider">${escapeHtml(post.category || 'General')}</span>
+                <h2 class="text-xl font-bold text-gray-900 mt-1 mb-2 line-clamp-2">${escapeHtml(post.title)}</h2>
+                <p class="text-sm text-gray-600 line-clamp-3">${escapeHtml(excerpt)}</p>
               </div>
-              <h2 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2">${post.title}</h2>
-              <p class="text-gray-600 text-sm line-clamp-3 mb-4">${post.excerpt || ''}</p>
-            </div>
-            <div class="text-sm font-semibold text-indigo-600 group-hover:underline flex items-center gap-1">
-              Read Article →
+              <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+                <span>${date}</span>
+                <span class="text-indigo-600 font-medium">Read Article →</span>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function openPostById(id) {
-      const post = blogState.posts.find(p => String(p.id) === String(id));
-      if (post) openPost(post);
+      const post = posts.find(p => String(p.id) === String(id));
+      if (post) openPost(post, true);
     }
 
-    function openPost(post) {
-      if (!post) return;
-      const titleParam = encodeURIComponent(post.title || '');
-      const descParam = encodeURIComponent(post.excerpt || post.summary || '');
-      const imgUrl = post.image || post.featured_image || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';
-      const imgEnc = encodeURIComponent(imgUrl);
-      history.pushState({}, '', `?post=${encodeURIComponent(post.id)}&t=${titleParam}&d=${descParam}&img=${imgEnc}`);
-      showPostDetailView(post.id);
-    }
-
-    function showPostDetailView(postId) {
-      const post = blogState.posts.find(p => String(p.id) === String(postId));
-      if (!post) return;
-
-      document.getElementById('viewHome').classList.add('hidden');
-      document.getElementById('viewAdminLogin').classList.add('hidden');
-      document.getElementById('viewAdminDashboard').classList.add('hidden');
-      document.getElementById('viewPost').classList.remove('hidden');
-
-      document.getElementById('postCategory').textContent = post.category || 'General';
-      document.getElementById('postTitle').textContent = post.title || '';
-      document.getElementById('postAuthor').textContent = post.author || 'Admin';
-      document.getElementById('postDate').textContent = post.date || '';
-
-      const imgEl = document.getElementById('postFeaturedImage');
-      const imgContainer = document.getElementById('postImageContainer');
-      if (post.image) {
-        imgEl.src = post.image;
-        imgContainer.classList.remove('hidden');
-      } else {
-        imgContainer.classList.add('hidden');
+    function openPost(post, updateHistory = true) {
+      if (updateHistory) {
+        const shortUrl = '?p=' + encodeURIComponent(post.id);
+        window.history.pushState({ postId: post.id }, '', shortUrl);
       }
 
-      const cfg = blogState.config || {};
-      injectAdContainer('slotBeforeTitle', cfg.enableBeforeTitle, cfg.adBeforeTitle);
-      injectAdContainer('slotUnderImage', cfg.enableUnderImage, cfg.adUnderImage);
-      injectAdContainer('slotAfterPost', cfg.enableAfterPost, cfg.adAfterPost);
-
-      renderArticleBody(post.content || '', cfg);
-      renderRecommended(post.id);
-
-      if (cfg.enablePopupAd && cfg.adPopupAd) {
-        const delay = (parseInt(cfg.popupDelaySeconds) || 3) * 1000;
-        setTimeout(() => {
-          const modal = document.getElementById('popupAdModal');
-          const container = document.getElementById('slotPopupAd');
-          if (modal && container) {
-            container.innerHTML = cfg.adPopupAd;
-            executeScriptsInElement(container);
-            modal.classList.remove('hidden');
-          }
-        }, delay);
-      }
-
+      document.getElementById('homeView').classList.add('hidden');
+      document.getElementById('postView').classList.remove('hidden');
       window.scrollTo(0, 0);
-    }
 
-    function renderArticleBody(rawContent, config) {
-      const container = document.getElementById('postContent');
-      if (!container) return;
-      if (!rawContent) {
-        container.innerHTML = '';
-        return;
-      }
+      document.getElementById('postTitle').innerText = post.title || '';
+      document.getElementById('postMeta').innerHTML = `
+        <span>By ${escapeHtml(post.author || 'Admin')}</span>
+        <span>•</span>
+        <span>${post.date ? new Date(post.date).toLocaleDateString() : ''}</span>
+        <span>•</span>
+        <span class="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-medium">${escapeHtml(post.category || 'General')}</span>
+      `;
 
-      const pRegex = /<p>[\s\S]*?<\/p>/gi;
-      const paragraphs = rawContent.match(pRegex);
-
-      if (!paragraphs || paragraphs.length === 0) {
-        container.innerHTML = rawContent;
-        executeScriptsInElement(container);
-        return;
-      }
-
-      const total = paragraphs.length;
-      const p30 = Math.max(1, Math.floor(total * 0.30));
-      const p60 = Math.max(2, Math.floor(total * 0.60));
-      const p80 = Math.max(3, Math.floor(total * 0.80));
-
-      let html = '';
-
-      paragraphs.forEach((p, idx) => {
-        const pNum = idx + 1;
-
-        if (idx === 0 && config.enableBeforeParagraph && config.adBeforeParagraph) {
-          html += `<div class="my-6 ad-container">${config.adBeforeParagraph}</div>`;
-        }
-        if (pNum === p30 && config.enablePara30 && config.adPara30) {
-          html += `<div class="my-6 ad-container">${config.adPara30}</div>`;
-        }
-        if (pNum === p60 && config.enablePara60 && config.adPara60) {
-          html += `<div class="my-6 ad-container">${config.adPara60}</div>`;
-        }
-        if (pNum === p80 && config.enablePara80 && config.adPara80) {
-          html += `<div class="my-6 ad-container">${config.adPara80}</div>`;
-        }
-
-        html += p;
-      });
-
-      container.innerHTML = html;
-      executeScriptsInElement(container);
-    }
-
-    function injectAdContainer(containerId, enabled, adCode) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      if (enabled && adCode) {
-        container.innerHTML = adCode;
-        container.classList.remove('hidden');
-        executeScriptsInElement(container);
+      const img = post.image || post.featured_image || post.featuredImage;
+      const imgContainer = document.getElementById('postImageContainer');
+      if (img) {
+        imgContainer.innerHTML = `<img src="${img}" alt="${escapeHtml(post.title)}" class="w-full max-h-[450px] object-cover rounded-xl shadow-sm" />`;
       } else {
-        container.innerHTML = '';
-        container.classList.add('hidden');
+        imgContainer.innerHTML = '';
       }
-    }
 
-    function executeScriptsInElement(element) {
-      if (!element) return;
-      const scripts = element.querySelectorAll('script');
-      scripts.forEach(s => {
-        const newScript = document.createElement('script');
-        Array.from(s.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.appendChild(document.createTextNode(s.innerHTML));
-        s.parentNode.replaceChild(newScript, s);
-      });
+      let contentHtml = post.content || '';
+      const paragraphs = contentHtml.split(/(<\/p>|<br\s*\/?>\s*<br\s*\/?>)/i);
+      if (paragraphs.length > 3) {
+        const total = paragraphs.length;
+        const p30 = Math.floor(total * 0.3);
+        const p60 = Math.floor(total * 0.6);
+        const p80 = Math.floor(total * 0.8);
+
+        let formatted = '';
+        paragraphs.forEach((p, index) => {
+          formatted += p;
+          if (index === p30 && getAdCode('slot4')) {
+            formatted += `<div class="ad-slot">${getAdCode('slot4')}</div>`;
+          }
+          if (index === p60 && getAdCode('slot5')) {
+            formatted += `<div class="ad-slot">${getAdCode('slot5')}</div>`;
+          }
+          if (index === p80 && getAdCode('slot6')) {
+            formatted += `<div class="ad-slot">${getAdCode('slot6')}</div>`;
+          }
+        });
+        contentHtml = formatted;
+      }
+
+      const contentEl = document.getElementById('postContent');
+      contentEl.innerHTML = contentHtml;
+      executeScripts(contentEl);
+
+      renderAd('ad-slot-1', 'slot1');
+      renderAd('ad-slot-2', 'slot2');
+      renderAd('ad-slot-3', 'slot3');
+      renderAd('ad-slot-7', 'slot7');
+
+      if (getAdCode('slot8')) {
+        renderAd('ad-slot-8', 'slot8');
+        document.getElementById('popupAd').classList.remove('hidden');
+      }
+
+      const shareUrl = encodeURIComponent(window.location.origin + '/?p=' + post.id);
+      const shareTitle = encodeURIComponent(post.title);
+      document.getElementById('shareButtons').innerHTML = `
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}" target="_blank" class="px-3.5 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition">Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}" target="_blank" class="px-3.5 py-1.5 bg-sky-500 text-white text-xs font-semibold rounded-lg hover:bg-sky-600 transition">X / Twitter</a>
+        <a href="https://api.whatsapp.com/send?text=${shareTitle}%20${shareUrl}" target="_blank" class="px-3.5 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-lg hover:bg-green-600 transition">WhatsApp</a>
+        <a href="https://t.me/share/url?url=${shareUrl}&text=${shareTitle}" target="_blank" class="px-3.5 py-1.5 bg-sky-600 text-white text-xs font-semibold rounded-lg hover:bg-sky-700 transition">Telegram</a>
+        <button onclick="copyShareLink('${window.location.origin}/?p=${post.id}')" class="px-3.5 py-1.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-300 transition">Copy Link</button>
+      `;
     }
 
     function closePopupAd() {
-      const modal = document.getElementById('popupAdModal');
-      if (modal) modal.classList.add('hidden');
+      document.getElementById('popupAd').classList.add('hidden');
     }
 
-    function renderRecommended(currentId) {
-      const grid = document.getElementById('recommendedGrid');
-      if (!grid) return;
-
-      const recs = blogState.posts.filter(p => String(p.id) !== String(currentId)).slice(0, 2);
-      grid.innerHTML = recs.map(p => `
-        <div onclick="openPostById('${p.id}')" class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex gap-4 items-center">
-          ${p.image ? `<img src="${p.image}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : ''}
-          <div>
-            <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase">${p.category || 'General'}</span>
-            <h4 class="text-sm font-bold text-gray-900 hover:text-indigo-600 line-clamp-1 mt-1">${p.title}</h4>
-          </div>
-        </div>
-      `).join('');
+    function copyShareLink(link) {
+      navigator.clipboard.writeText(link).then(() => alert('Link copied to clipboard!'));
     }
 
-    function sharePost() {
-      if (navigator.share) {
-        navigator.share({
-          title: document.getElementById('postTitle').textContent,
-          url: window.location.href
-        }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(window.location.href);
-        alert('Post URL copied to clipboard!');
-      }
+    function goHome(e) {
+      if (e) e.preventDefault();
+      window.history.pushState({}, '', '/');
+      showHome();
     }
 
-    function handleLogin(e) {
-      e.preventDefault();
-      blogState.isLoggedIn = true;
-      showAdminDashboard();
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function handleLogout() {
-      blogState.isLoggedIn = false;
-      routeTo('home');
-    }
+    window.addEventListener('popstate', route);
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('progressBar').style.width = scrolled + '%';
+    });
 
-    function showAdminDashboard() {
-      document.getElementById('viewHome').classList.add('hidden');
-      document.getElementById('viewPost').classList.add('hidden');
-      document.getElementById('viewAdminLogin').classList.add('hidden');
-      document.getElementById('viewAdminDashboard').classList.remove('hidden');
-
-      renderAdminPostsTable();
-      populateAdsConfigForm();
-    }
-
-    function switchAdminTab(tab) {
-      const postsTab = document.getElementById('adminTabPosts');
-      const adsTab = document.getElementById('adminTabAds');
-      const btnPosts = document.getElementById('tabBtnPosts');
-      const btnAds = document.getElementById('tabBtnAds');
-
-      if (tab === 'posts') {
-        postsTab.classList.remove('hidden');
-        adsTab.classList.add('hidden');
-        btnPosts.className = 'pb-3 border-b-2 border-indigo-600 font-bold text-indigo-600 text-sm';
-        btnAds.className = 'pb-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 text-sm';
-      } else {
-        postsTab.classList.add('hidden');
-        adsTab.classList.remove('hidden');
-        btnAds.className = 'pb-3 border-b-2 border-indigo-600 font-bold text-indigo-600 text-sm';
-        btnPosts.className = 'pb-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 text-sm';
-      }
-    }
-
-    function renderAdminPostsTable() {
-      const tbody = document.getElementById('adminPostsTable');
-      if (!tbody) return;
-
-      tbody.innerHTML = blogState.posts.map(p => `
-        <tr class="border-b border-gray-100 hover:bg-gray-50">
-          <td class="px-6 py-4 font-medium text-gray-900">${p.title}</td>
-          <td class="px-6 py-4"><span class="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">${p.category || 'General'}</span></td>
-          <td class="px-6 py-4 text-sm text-gray-500">${p.date || ''}</td>
-          <td class="px-6 py-4 text-right space-x-2">
-            <button onclick="editPost('${p.id}')" class="text-indigo-600 hover:text-indigo-900 font-semibold text-xs">Edit</button>
-            <button onclick="deletePost('${p.id}')" class="text-red-600 hover:text-red-900 font-semibold text-xs">Delete</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function openPostModal() {
-      document.getElementById('modalTitle').textContent = 'Create New Article';
-      document.getElementById('editPostId').value = '';
-      document.getElementById('postModalTitle').value = '';
-      document.getElementById('postModalCategory').value = '';
-      document.getElementById('postModalImage').value = '';
-      document.getElementById('postModalContent').value = '';
-      document.getElementById('postModal').classList.remove('hidden');
-    }
-
-    function closePostModal() {
-      document.getElementById('postModal').classList.add('hidden');
-    }
-
-    function editPost(id) {
-      const post = blogState.posts.find(p => String(p.id) === String(id));
-      if (!post) return;
-
-      document.getElementById('modalTitle').textContent = 'Edit Article';
-      document.getElementById('editPostId').value = post.id;
-      document.getElementById('postModalTitle').value = post.title || '';
-      document.getElementById('postModalCategory').value = post.category || '';
-      document.getElementById('postModalImage').value = post.image || '';
-      document.getElementById('postModalContent').value = post.content || '';
-      document.getElementById('postModal').classList.remove('hidden');
-    }
-
-    async function handleSavePost(e) {
-      e.preventDefault();
-      const id = document.getElementById('editPostId').value;
-      const title = document.getElementById('postModalTitle').value;
-      const category = document.getElementById('postModalCategory').value;
-      const image = document.getElementById('postModalImage').value;
-      const content = document.getElementById('postModalContent').value;
-
-      const plainText = content.replace(/<[^>]+>/g, '');
-      const excerpt = plainText.slice(0, 150) + (plainText.length > 150 ? '...' : '');
-
-      if (id) {
-        const post = blogState.posts.find(p => String(p.id) === String(id));
-        if (post) {
-          post.title = title;
-          post.category = category;
-          post.image = image;
-          post.content = content;
-          post.excerpt = excerpt;
-        }
-      } else {
-        const newPost = {
-          id: String(Date.now()),
-          title,
-          category,
-          image,
-          content,
-          excerpt,
-          date: new Date().toISOString().split('T')[0],
-          author: 'Admin'
-        };
-        blogState.posts.unshift(newPost);
-      }
-
-      closePostModal();
-      renderAdminPostsTable();
-
-      try {
-        await fetch('/api/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(blogState.posts)
-        });
-      } catch (err) {
-        console.warn('Failed to save posts to API', err);
-      }
-    }
-
-    async function deletePost(id) {
-      if (!confirm('Are you sure you want to delete this post?')) return;
-      blogState.posts = blogState.posts.filter(p => String(p.id) !== String(id));
-      renderAdminPostsTable();
-
-      try {
-        await fetch('/api/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(blogState.posts)
-        });
-      } catch (err) {
-        console.warn('Failed to delete post from API', err);
-      }
-    }
-
-    function populateAdsConfigForm() {
-      const cfg = blogState.config || {};
-      document.getElementById('enableBeforeTitle').checked = !!cfg.enableBeforeTitle;
-      document.getElementById('adBeforeTitle').value = cfg.adBeforeTitle || '';
-
-      document.getElementById('enableUnderImage').checked = !!cfg.enableUnderImage;
-      document.getElementById('adUnderImage').value = cfg.adUnderImage || '';
-
-      document.getElementById('enableBeforeParagraph').checked = !!cfg.enableBeforeParagraph;
-      document.getElementById('adBeforeParagraph').value = cfg.adBeforeParagraph || '';
-
-      document.getElementById('enablePara30').checked = !!cfg.enablePara30;
-      document.getElementById('adP30').value = cfg.adPara30 || '';
-
-      document.getElementById('enablePara60').checked = !!cfg.enablePara60;
-      document.getElementById('adP60').value = cfg.adPara60 || '';
-
-      document.getElementById('enablePara80').checked = !!cfg.enablePara80;
-      document.getElementById('adP80').value = cfg.adPara80 || '';
-
-      document.getElementById('enableAfterPost').checked = !!cfg.enableAfterPost;
-      document.getElementById('adAfterPost').value = cfg.adAfterPost || '';
-
-      document.getElementById('enablePopupAd').checked = !!cfg.enablePopupAd;
-      document.getElementById('popupDelaySeconds').value = cfg.popupDelaySeconds || 3;
-      document.getElementById('adPopupAd').value = cfg.adPopupAd || '';
-    }
-
-    async function saveAdsConfig(e) {
-      e.preventDefault();
-      const cfg = {
-        enableBeforeTitle: document.getElementById('enableBeforeTitle').checked,
-        adBeforeTitle: document.getElementById('adBeforeTitle').value,
-        enableUnderImage: document.getElementById('enableUnderImage').checked,
-        adUnderImage: document.getElementById('adUnderImage').value,
-        enableBeforeParagraph: document.getElementById('enableBeforeParagraph').checked,
-        adBeforeParagraph: document.getElementById('adBeforeParagraph').value,
-        enablePara30: document.getElementById('enablePara30').checked,
-        adPara30: document.getElementById('adP30').value,
-        enablePara60: document.getElementById('enablePara60').checked,
-        adPara60: document.getElementById('adP60').value,
-        enablePara80: document.getElementById('enablePara80').checked,
-        adPara80: document.getElementById('adP80').value,
-        enableAfterPost: document.getElementById('enableAfterPost').checked,
-        adAfterPost: document.getElementById('adAfterPost').value,
-        enablePopupAd: document.getElementById('enablePopupAd').checked,
-        popupDelaySeconds: parseInt(document.getElementById('popupDelaySeconds').value) || 3,
-        adPopupAd: document.getElementById('adPopupAd').value
-      };
-
-      blogState.config = cfg;
-      alert('Ad configuration saved successfully!');
-
-      try {
-        await fetch('/api/config', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cfg)
-        });
-      } catch (err) {
-        console.warn('Failed to save config to API', err);
-      }
-    }
+    init();
   </script>
 </body>
 </html>
