@@ -3,510 +3,781 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - Cloudflare Blog CMS</title>
+  <title>Admin Dashboard - WordPress Style CMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .editor-canvas:empty:before {
+      content: "Start writing or paste images, videos, YouTube links here...";
+      color: #9ca3af;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-sans min-h-screen">
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- Admin Login View -->
-  <div id="loginView" class="min-h-screen flex items-center justify-center px-4">
-    <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200 max-w-md w-full">
-      <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-indigo-600">Admin Login</h1>
-        <p class="text-sm text-gray-500 mt-1">Enter admin credentials to access dashboard</p>
-      </div>
-      <form onsubmit="handleLogin(event)" class="space-y-4">
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <!-- Header -->
+    <header class="bg-white shadow rounded-lg p-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-600 text-white font-bold px-3 py-1.5 rounded-lg text-xl tracking-wide">JF</div>
         <div>
-          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Username</label>
-          <input type="text" id="loginUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Username" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Password</label>
-          <input type="password" id="adminPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Password" />
-        </div>
-        <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
-          Sign In
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Admin Dashboard View -->
-  <div id="dashboardView" class="hidden min-h-screen flex flex-col">
-    <!-- Navbar -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center space-x-3">
-          <span class="text-xl font-bold text-indigo-600">CMS Admin</span>
-        </div>
-        <div class="flex items-center space-x-4">
-          <a href="../" target="_blank" class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition">View Site &rarr;</a>
-          <button onclick="logout()" class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium">Logout</button>
+          <h1 class="text-xl font-bold text-gray-800">WordPress-Style CMS Admin</h1>
+          <p class="text-xs text-gray-500">JoltFeed Cloudflare Blog CMS</p>
         </div>
       </div>
-      <!-- Tabs Navigation -->
-      <div class="max-w-7xl mx-auto px-4 flex space-x-2 border-t border-gray-100 overflow-x-auto">
-        <button id="tab-posts" onclick="switchTab('posts')" class="px-4 py-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600">Posts</button>
-        <button id="tab-editor" onclick="switchTab('editor')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Create / Edit Post</button>
-        <button id="tab-ads" onclick="switchTab('ads')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Ad Placements (8 Slots)</button>
-        <button id="tab-codes" onclick="switchTab('codes')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Header & Analytics Codes</button>
-        <button id="tab-settings" onclick="switchTab('settings')" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700">Change Password</button>
+      <div class="flex items-center gap-3">
+        <a href="../" target="_blank" class="px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-50 font-medium transition">🌐 View Site</a>
       </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+    <!-- Navigation Tabs -->
+    <nav class="bg-white rounded-lg shadow mb-6 border border-gray-200 flex flex-wrap overflow-x-auto border-b">
+      <button onclick="switchTab('posts')" id="tabBtn-posts" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-blue-600 text-blue-600 hover:bg-gray-50 flex items-center gap-2">
+        📄 Posts Manager
+      </button>
+      <button onclick="openCreatePost()" id="tabBtn-editor" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50 flex items-center gap-2">
+        ✏️ Create / Edit Post
+      </button>
+      <button onclick="switchTab('ads')" id="tabBtn-ads" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50 flex items-center gap-2">
+        📢 Ad Placements (8 Slots)
+      </button>
+      <button onclick="switchTab('header')" id="tabBtn-header" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50 flex items-center gap-2">
+        ⚙️ Header & Analytics Codes
+      </button>
+      <button onclick="switchTab('password')" id="tabBtn-password" class="tab-btn px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-gray-600 hover:text-blue-600 hover:bg-gray-50 flex items-center gap-2">
+        🔒 Change Password
+      </button>
+    </nav>
 
-      <!-- Tab 1: Posts -->
-      <div id="view-posts" class="space-y-4">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-bold text-gray-800">Blog Posts</h2>
-          <button onclick="newPost()" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition">+ New Post</button>
+    <!-- Tab 1: Posts Manager View -->
+    <div id="tab-posts" class="tab-content">
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">All Posts</h2>
+            <p class="text-sm text-gray-500">Manage, edit, or publish articles to your publication</p>
+          </div>
+          <button onclick="openCreatePost()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm shadow transition flex items-center gap-2">
+            + Create New Post
+          </button>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
-                <th class="p-4">Title</th>
-                <th class="p-4">Slug</th>
-                <th class="p-4 text-right">Actions</th>
+
+        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+          <table class="w-full text-left text-sm text-gray-700">
+            <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="py-3 px-4">Title</th>
+                <th class="py-3 px-4">Category</th>
+                <th class="py-3 px-4">Date</th>
+                <th class="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody id="postsList" class="divide-y divide-gray-100 text-sm">
-              <tr><td colspan="3" class="p-4 text-gray-400 text-center">Loading posts...</td></tr>
+            <tbody id="postsTableBody">
+              <!-- Dynamically populated -->
             </tbody>
           </table>
         </div>
       </div>
+    </div>
 
-      <!-- Tab 2: Create / Edit Post -->
-      <div id="view-editor" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
-        <h2 id="editorHeading" class="text-xl font-bold text-gray-800">Create / Edit Post</h2>
-        <form onsubmit="savePost(event)" class="space-y-4">
-          <input type="hidden" id="postId" />
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Title</label>
-            <input type="text" id="postTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Slug</label>
-            <input type="text" id="postSlug" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Upload Featured Image from Device</label>
-            <input type="file" accept="image/*" id="featuredImageFile" onchange="handleFileUpload(event)" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Featured Image URL</label>
-            <input type="text" id="postImage" oninput="previewImage()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="https://... or base64" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Live Featured Image Preview</label>
-            <div id="imagePreviewBox" class="p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50 flex items-center justify-center min-h-[100px]">
-              <img id="imagePreview" src="" alt="Preview" class="max-h-48 rounded shadow-sm hidden" />
-              <span id="noPreviewLabel" class="text-xs text-gray-400">No image selected</span>
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Content (HTML allowed)</label>
-            <textarea id="postContent" rows="10" required class="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
-          <div class="flex justify-end space-x-3">
-            <button type="button" onclick="switchTab('posts')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
-            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700">Save Post</button>
-          </div>
-        </form>
-      </div>
+    <!-- Tab 2: WordPress-Style Two-Column Create / Edit Post View -->
+    <div id="tab-editor" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Main Editor Column (Main Content Area) -->
+        <div class="lg:col-span-2 flex flex-col gap-4">
+          <!-- Large Post Title Input -->
+          <input type="text" id="postTitle" placeholder="Add title" class="w-full text-2xl font-bold p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
 
-      <!-- Tab 3: Ad Placements (8 Slots) -->
-      <div id="view-ads" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
-        <div>
-          <h2 class="text-xl font-bold text-gray-800">Ad Placements (8 Slots)</h2>
-          <p class="text-xs text-gray-500 mt-1">Manage advertisement code blocks and toggle status for 8 unique placements.</p>
-        </div>
-        <form onsubmit="saveAds(event)" class="space-y-4">
-          <div id="adsListContainer" class="space-y-4">
-
-            <!-- Slot 1: Before Title -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">1. Before Title</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_before_title_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_before_title" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-            <!-- Slot 2: Under Image -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">2. Under Image</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_under_image_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_under_image" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-            <!-- Slot 3: Before Paragraph -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">3. Before Paragraph</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_before_paragraph_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_before_paragraph" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-            <!-- Slot 4: Before 30% of Paragraphs -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">4. Before 30% of Paragraphs</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_30_percent_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_30_percent" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-            <!-- Slot 5: 60% of Paragraphs -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">5. 60% of Paragraphs</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_60_percent_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_60_percent" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-            <!-- Slot 6: 80% of Paragraphs -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">6. 80% of Paragraphs</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_80_percent_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_80_percent" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-            <!-- Slot 7: After Post -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">7. After Post</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_after_post_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_after_post" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-            <!-- Slot 8: Pop-Up Ad -->
-            <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="font-bold text-sm text-gray-800">8. Pop-Up Ad</span>
-                <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                  <input type="checkbox" id="ad_popup_enabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                  <span>ON/OFF</span>
-                </label>
-              </div>
-              <textarea id="ad_popup" rows="3" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ad code snippet..."></textarea>
-            </div>
-
-          </div>
-          <div class="pt-4 flex justify-end">
-            <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg hover:bg-indigo-700 transition">Save Ad Placements</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Tab 4: Header & Analytics Codes -->
-      <div id="view-codes" class="hidden max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-6">
-        <div>
-          <h2 class="text-xl font-bold text-gray-800">Header & Analytics Codes</h2>
-          <p class="text-xs text-gray-500 mt-1">Inject scripts into &lt;head&gt; or tracking codes on pages.</p>
-        </div>
-        <form onsubmit="saveCodes(event)" class="space-y-4">
-          <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-            <div class="flex justify-between items-center">
-              <label class="font-bold text-sm text-gray-800">Custom Header Code (&lt;head&gt;)</label>
-              <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                <input type="checkbox" id="customHeaderEnabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                <span>ON/OFF</span>
+          <!-- Media & AI Action Bar (like WordPress Add Media) -->
+          <div class="bg-white border border-gray-200 rounded-t-lg p-2.5 flex flex-wrap items-center justify-between gap-2 border-b-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded border border-gray-300 transition flex items-center gap-1.5">
+                📷 Add Media (Upload Photos/Videos)
+                <input type="file" id="mediaUploadInput" accept="image/*,video/*" multiple class="hidden" onchange="handleMediaUpload(event)" />
               </label>
+              <button onclick="embedVideoPrompt()" type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded border border-gray-300 transition flex items-center gap-1.5">
+                🎬 Embed Video / YouTube
+              </button>
+              <button onclick="autoGeneratePost()" type="button" class="bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1.5 rounded border border-purple-200 transition flex items-center gap-1.5">
+                ✨ Auto-Generate Post
+              </button>
             </div>
-            <textarea id="customHeaderCode" rows="4" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="<script>...</script>"></textarea>
-          </div>
-          <div class="p-4 border border-gray-200 rounded-xl bg-gray-50 space-y-2">
-            <div class="flex justify-between items-center">
-              <label class="font-bold text-sm text-gray-800">Analytics / Tracking Code</label>
-              <label class="flex items-center space-x-2 text-xs text-gray-700 font-medium cursor-pointer">
-                <input type="checkbox" id="analyticsEnabled" class="rounded text-indigo-600 focus:ring-indigo-500" />
-                <span>ON/OFF</span>
-              </label>
+
+            <!-- Visual / Code (HTML) Mode Tabs -->
+            <div class="flex items-center bg-gray-100 p-0.5 rounded border border-gray-200 text-xs">
+              <button type="button" id="modeVisualBtn" onclick="switchEditorMode('visual')" class="px-3 py-1 rounded font-semibold bg-white text-gray-800 shadow-sm">
+                Visual
+              </button>
+              <button type="button" id="modeCodeBtn" onclick="switchEditorMode('code')" class="px-3 py-1 rounded font-semibold text-gray-600 hover:text-gray-900">
+                Code (HTML)
+              </button>
             </div>
-            <textarea id="analyticsCode" rows="4" class="w-full p-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="<script>...</script>"></textarea>
           </div>
-          <div class="pt-4 flex justify-end">
-            <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg hover:bg-indigo-700 transition">Save Codes</button>
+
+          <!-- Formatting Toolbar -->
+          <div id="formattingToolbar" class="bg-gray-50 border border-gray-200 p-2 flex flex-wrap items-center gap-1">
+            <button type="button" onclick="formatDoc('bold')" title="Bold" class="p-1.5 text-gray-700 hover:bg-gray-200 rounded font-bold w-8 h-8 flex items-center justify-center">B</button>
+            <button type="button" onclick="formatDoc('italic')" title="Italic" class="p-1.5 text-gray-700 hover:bg-gray-200 rounded italic w-8 h-8 flex items-center justify-center">I</button>
+            <button type="button" onclick="formatDoc('underline')" title="Underline" class="p-1.5 text-gray-700 hover:bg-gray-200 rounded underline w-8 h-8 flex items-center justify-center">U</button>
+            <div class="w-px h-5 bg-gray-300 mx-1"></div>
+            <button type="button" onclick="formatDoc('formatBlock', '<h2>')" title="Heading 2" class="px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 rounded font-bold">H2</button>
+            <button type="button" onclick="formatDoc('formatBlock', '<h3>')" title="Heading 3" class="px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 rounded font-bold">H3</button>
+            <div class="w-px h-5 bg-gray-300 mx-1"></div>
+            <button type="button" onclick="formatDoc('insertUnorderedList')" title="Bullet List" class="px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 rounded">• List</button>
+            <button type="button" onclick="formatDoc('insertOrderedList')" title="Numbered List" class="px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 rounded">1. List</button>
+            <button type="button" onclick="formatDoc('formatBlock', '<blockquote>')" title="Quote" class="px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 rounded">"</button>
+            <button type="button" onclick="insertLinkPrompt()" title="Insert Link" class="px-2 py-1 text-xs text-gray-700 hover:bg-gray-200 rounded">🔗 Link</button>
+          </div>
+
+          <!-- Visual ContentEditable Editor Canvas -->
+          <div id="editorCanvas" contenteditable="true" class="editor-canvas min-h-[420px] p-4 bg-white border border-gray-300 rounded-b-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 overflow-y-auto max-h-[600px] leading-relaxed text-gray-800"></div>
+
+          <!-- Code (HTML) Source Textarea -->
+          <textarea id="htmlSourceTextarea" class="hidden min-h-[420px] p-4 bg-gray-900 text-green-400 font-mono text-sm border border-gray-300 rounded-b-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"></textarea>
+        </div>
+
+        <!-- Right Sidebar Column (WordPress Document Panels) -->
+        <div class="flex flex-col gap-6">
+          
+          <!-- Panel 1: Publish Box -->
+          <div class="bg-white rounded-lg shadow border border-gray-200 p-5">
+            <h3 class="font-bold text-gray-800 border-b pb-2 mb-4 text-base flex items-center justify-between">
+              <span>Publish</span>
+              <span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded font-semibold">Ready</span>
+            </h3>
+            <div class="space-y-3 text-sm text-gray-600 mb-5">
+              <div class="flex justify-between">
+                <span>Status:</span>
+                <span class="font-semibold text-gray-800">Published</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Visibility:</span>
+                <span class="font-semibold text-gray-800">Public</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button type="button" id="savePostBtn" onclick="savePost()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg shadow transition text-center text-sm">
+                Publish / Save Post
+              </button>
+              <button type="button" onclick="openCreatePost()" class="px-3 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel 2: Featured Image Panel -->
+          <div class="bg-white rounded-lg shadow border border-gray-200 p-5">
+            <h3 class="font-bold text-gray-800 border-b pb-2 mb-4 text-base">Featured Image</h3>
+            
+            <div id="imagePreviewBox" class="mb-3 hidden">
+              <img id="imagePreview" src="" alt="Featured Image Preview" class="w-full h-40 object-cover rounded border border-gray-200 mb-2" />
+              <button type="button" id="removeImageBtn" onclick="removeFeaturedImage()" class="text-xs text-red-600 hover:text-red-800 font-semibold underline">
+                Remove Featured Image
+              </button>
+            </div>
+
+            <label class="block mb-3">
+              <span class="cursor-pointer inline-block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-3 rounded border border-gray-300 text-xs transition">
+                Set Featured Image / Upload from Device
+                <input type="file" id="featuredImageFile" accept="image/*" class="hidden" onchange="handleFeaturedImageUpload(event)" />
+              </span>
+            </label>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Featured Image URL (Optional)</label>
+              <input type="url" id="postImage" placeholder="https://images.unsplash.com/..." class="w-full text-xs p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="updateImagePreviewFromUrl()" />
+            </div>
+          </div>
+
+          <!-- Panel 3: Category & Excerpt Panel -->
+          <div class="bg-white rounded-lg shadow border border-gray-200 p-5 space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Category</label>
+              <input type="text" id="postCategory" placeholder="e.g. Technology, AI, News" class="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Excerpt / Short Summary</label>
+              <textarea id="postExcerpt" rows="3" placeholder="Brief summary of the article for cards and meta descriptions..." class="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 leading-relaxed"></textarea>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab 3: Ad Placements (8 Slots) View -->
+    <div id="tab-ads" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-1">Ad Placements (8 Slots)</h2>
+        <p class="text-sm text-gray-500 mb-6">Manage high-CTR ad codes across all template positions</p>
+
+        <form onsubmit="saveAdSettings(event)" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Ad Slots 1 to 8 -->
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 1: Top Above Header Banner</label>
+              <textarea id="ad_slot_1" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 2: Below Navigation Header</label>
+              <textarea id="ad_slot_2" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 3: Above Article Title</label>
+              <textarea id="ad_slot_3" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 4: Mid-Article (Paragraph 2)</label>
+              <textarea id="ad_slot_4" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 5: Mid-Article (Paragraph 4)</label>
+              <textarea id="ad_slot_5" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 6: Below Article Content</label>
+              <textarea id="ad_slot_6" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 7: Above Comments Section</label>
+              <textarea id="ad_slot_7" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+            <div class="border p-4 rounded-lg bg-gray-50">
+              <label class="font-bold text-gray-700 text-sm block mb-1">Slot 8: Bottom Footer Banner</label>
+              <textarea id="ad_slot_8" rows="3" class="w-full text-xs font-mono p-2 border rounded" placeholder="<script>...</script>"></textarea>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow transition text-sm">
+              Save Ad Settings
+            </button>
           </div>
         </form>
       </div>
+    </div>
 
-      <!-- Tab 5: Change Password -->
-      <div id="view-settings" class="hidden max-w-md mx-auto bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
-        <div>
-          <h2 class="text-xl font-bold text-gray-800">Change Admin Password</h2>
-          <p class="text-xs text-gray-500 mt-1">Update login username and password credentials.</p>
-        </div>
+    <!-- Tab 4: Header & Analytics Codes View -->
+    <div id="tab-header" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-1">Header & Analytics Codes</h2>
+        <p class="text-sm text-gray-500 mb-6">Inject custom HTML, Google Analytics, or meta tags into the &lt;head&gt;</p>
+
+        <form onsubmit="saveHeaderSettings(event)" class="space-y-6">
+          <div>
+            <label class="font-bold text-gray-700 text-sm block mb-1">Custom Header HTML / Meta Codes</label>
+            <textarea id="customHeaderCode" rows="4" class="w-full text-xs font-mono p-3 border rounded-lg" placeholder="<!-- Meta tags or CSS -->"></textarea>
+            <label class="inline-flex items-center mt-2 text-xs text-gray-600">
+              <input type="checkbox" id="enableHeaderCode" checked class="mr-2" /> Enable Header Injection
+            </label>
+          </div>
+
+          <div>
+            <label class="font-bold text-gray-700 text-sm block mb-1">Google Analytics / Script Tag</label>
+            <textarea id="analyticsCode" rows="4" class="w-full text-xs font-mono p-3 border rounded-lg" placeholder="<script async src='...'></script>"></textarea>
+            <label class="inline-flex items-center mt-2 text-xs text-gray-600">
+              <input type="checkbox" id="enableAnalytics" checked class="mr-2" /> Enable Analytics Code
+            </label>
+          </div>
+
+          <div class="pt-4 border-t">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow transition text-sm">
+              Save Header & Analytics Settings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tab 5: Change Password View -->
+    <div id="tab-password" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-6 max-w-lg">
+        <h2 class="text-xl font-bold text-gray-800 mb-1">Change Admin Password</h2>
+        <p class="text-sm text-gray-500 mb-6">Update credentials for logging into admin area</p>
+
         <form onsubmit="savePassword(event)" class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Admin Username</label>
-            <input type="text" id="adminUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Admin Username" />
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">New Password</label>
+            <input type="password" id="newAdminPassword" required class="w-full text-sm p-2.5 border rounded-lg" />
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">New Password</label>
-            <input type="password" id="newPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="New Password" />
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Confirm Password</label>
+            <input type="password" id="confirmAdminPassword" required class="w-full text-sm p-2.5 border rounded-lg" />
           </div>
-          <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white font-semibold text-sm rounded-lg hover:bg-indigo-700 transition">Update Password</button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow transition text-sm">
+            Update Password
+          </button>
         </form>
       </div>
+    </div>
 
-    </main>
   </div>
 
   <script>
-    let posts = [];
+    // Safe DOM helper functions as required by prompt
+    const val = id => document.getElementById(id)?.value || '';
+    const chk = id => !!document.getElementById(id)?.checked;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const logged = localStorage.getItem('cms_logged_in');
-      if (logged) {
-        showDashboard();
-      } else {
-        showLogin();
-      }
+    let editingPostId = null;
+    let currentPosts = [];
+    let currentConfig = {};
+
+    // Initial state loading
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadLocalState();
+      renderPosts();
+      populateSettings();
+      setupPasteAndDrop();
+      await syncWithApi();
     });
 
-    function showLogin() {
-      document.getElementById('loginView').classList.remove('hidden');
-      document.getElementById('dashboardView').classList.add('hidden');
-    }
+    function loadLocalState() {
+      try {
+        const pRaw = localStorage.getItem('cms_posts') || localStorage.getItem('blog_posts_v3') || localStorage.getItem('joltfeed_posts');
+        currentPosts = pRaw ? JSON.parse(pRaw) : [];
+      } catch (e) { currentPosts = []; }
 
-    function showDashboard() {
-      document.getElementById('loginView').classList.add('hidden');
-      document.getElementById('dashboardView').classList.remove('hidden');
-      loadPosts();
-      loadConfig();
-    }
+      try {
+        const cRaw = localStorage.getItem('cms_config') || localStorage.getItem('blog_config_v3');
+        currentConfig = cRaw ? JSON.parse(cRaw) : {};
+      } catch (e) { currentConfig = {}; }
 
-    function handleLogin(e) {
-      e.preventDefault();
-      localStorage.setItem('cms_logged_in', '1');
-      showDashboard();
-    }
-
-    function logout() {
-      localStorage.removeItem('cms_logged_in');
-      showLogin();
-    }
-
-    function switchTab(tab) {
-      const tabs = ['posts', 'editor', 'ads', 'codes', 'settings'];
-      tabs.forEach(t => {
-        const v = document.getElementById('view-' + t);
-        const b = document.getElementById('tab-' + t);
-        if (t === tab) {
-          if (v) v.classList.remove('hidden');
-          if (b) {
-            b.classList.add('border-indigo-600', 'text-indigo-600');
-            b.classList.remove('border-transparent', 'text-gray-500');
+      if (!Array.isArray(currentPosts) || currentPosts.length === 0) {
+        currentPosts = [
+          {
+            id: '1',
+            title: 'Welcome to Cloudflare Blog CMS',
+            category: 'Technology',
+            excerpt: 'A fast, modern blogging platform powered by Cloudflare Workers and HTML5.',
+            content: '<p>Welcome to your brand new WordPress-style blog CMS. You can edit posts, upload photos and videos, and embed media easily!</p>',
+            image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+            date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           }
-        } else {
-          if (v) v.classList.add('hidden');
-          if (b) {
-            b.classList.remove('border-indigo-600', 'text-indigo-600');
-            b.classList.add('border-transparent', 'text-gray-500');
+        ];
+        saveAllStateLocally();
+      }
+    }
+
+    function saveAllStateLocally() {
+      const stateObj = { posts: currentPosts, config: currentConfig };
+      localStorage.setItem('cms_posts', JSON.stringify(currentPosts));
+      localStorage.setItem('cms_config', JSON.stringify(currentConfig));
+      localStorage.setItem('blog_posts_v3', JSON.stringify(currentPosts));
+      localStorage.setItem('blog_config_v3', JSON.stringify(currentConfig));
+      localStorage.setItem('joltfeed_posts', JSON.stringify(currentPosts));
+      return stateObj;
+    }
+
+    async function syncWithApi() {
+      try {
+        const res = await fetch('/api/state');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.posts && data.posts.length > 0) {
+            currentPosts = data.posts;
+            if (data.config) currentConfig = data.config;
+            saveAllStateLocally();
+            renderPosts();
+            populateSettings();
           }
         }
-      });
+      } catch (e) {}
     }
 
-    function handleFileUpload(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.getElementById('postImage').value = evt.target.result;
-          previewImage();
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function previewImage() {
-      const val = document.getElementById('postImage').value.trim();
-      const img = document.getElementById('imagePreview');
-      const label = document.getElementById('noPreviewLabel');
-      if (val) {
-        img.src = val;
-        img.classList.remove('hidden');
-        label.classList.add('hidden');
-      } else {
-        img.src = '';
-        img.classList.add('hidden');
-        label.classList.remove('hidden');
-      }
-    }
-
-    async function loadPosts() {
+    async function pushStateToApi() {
+      const stateObj = saveAllStateLocally();
       try {
-        const res = await fetch('/api/posts');
-        posts = await res.json();
-        renderPosts();
-      } catch (err) {
-        renderPosts();
+        await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(stateObj)
+        });
+      } catch (e) {}
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'bg-emerald-600 text-white font-semibold text-sm px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0';
+      toast.innerHTML = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-600', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-600');
+      });
+
+      const targetContent = document.getElementById(`tab-${tabName}`);
+      const targetBtn = document.getElementById(`tabBtn-${tabName}`);
+      if (targetContent) targetContent.classList.remove('hidden');
+      if (targetBtn) {
+        targetBtn.classList.remove('border-transparent', 'text-gray-600');
+        targetBtn.classList.add('border-blue-600', 'text-blue-600');
       }
+    }
+
+    function openCreatePost() {
+      editingPostId = null;
+      if (document.getElementById('postTitle')) document.getElementById('postTitle').value = '';
+      if (document.getElementById('editorCanvas')) document.getElementById('editorCanvas').innerHTML = '';
+      if (document.getElementById('htmlSourceTextarea')) document.getElementById('htmlSourceTextarea').value = '';
+      if (document.getElementById('postCategory')) document.getElementById('postCategory').value = 'General';
+      if (document.getElementById('postExcerpt')) document.getElementById('postExcerpt').value = '';
+      if (document.getElementById('postImage')) document.getElementById('postImage').value = '';
+      if (document.getElementById('featuredImageFile')) document.getElementById('featuredImageFile').value = '';
+      removeFeaturedImage();
+      switchTab('editor');
+    }
+
+    function editPost(id) {
+      const p = currentPosts.find(item => String(item.id) === String(id));
+      if (!p) return;
+      editingPostId = p.id;
+
+      if (document.getElementById('postTitle')) document.getElementById('postTitle').value = p.title || '';
+      const contentHtml = p.content || '';
+      if (document.getElementById('editorCanvas')) document.getElementById('editorCanvas').innerHTML = contentHtml;
+      if (document.getElementById('htmlSourceTextarea')) document.getElementById('htmlSourceTextarea').value = contentHtml;
+      if (document.getElementById('postCategory')) document.getElementById('postCategory').value = p.category || 'General';
+      if (document.getElementById('postExcerpt')) document.getElementById('postExcerpt').value = p.excerpt || p.summary || '';
+      
+      const imgUrl = p.image || p.featured_image || '';
+      if (document.getElementById('postImage')) document.getElementById('postImage').value = imgUrl;
+      if (imgUrl) {
+        setFeaturedPreviewSrc(imgUrl);
+      } else {
+        removeFeaturedImage();
+      }
+
+      switchTab('editor');
+    }
+
+    function deletePost(id) {
+      if (!confirm('Are you sure you want to delete this post?')) return;
+      currentPosts = currentPosts.filter(item => String(item.id) !== String(id));
+      pushStateToApi();
+      renderPosts();
+      showToast('✓ Post deleted successfully!');
     }
 
     function renderPosts() {
-      const el = document.getElementById('postsList');
-      if (!posts || posts.length === 0) {
-        el.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-500">No posts found</td></tr>';
+      const tbody = document.getElementById('postsTableBody');
+      if (!tbody) return;
+      if (currentPosts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">No posts found. Click "+ Create New Post" to publish one.</td></tr>`;
         return;
       }
-      el.innerHTML = posts.map(p => `
-        <tr>
-          <td class="p-4 font-semibold text-gray-800">${p.title || ''}</td>
-          <td class="p-4 text-gray-500">${p.slug || ''}</td>
-          <td class="p-4 text-right space-x-2">
-            <button onclick="editPost('${p.id}')" class="text-indigo-600 hover:underline font-semibold">Edit</button>
-            <button onclick="deletePost('${p.id}')" class="text-red-600 hover:underline font-semibold">Delete</button>
+      tbody.innerHTML = currentPosts.map(p => `
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-3 px-4 font-semibold text-gray-900">${escapeHtml(p.title || 'Untitled')}</td>
+          <td class="py-3 px-4 text-gray-600"><span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs">${escapeHtml(p.category || 'General')}</span></td>
+          <td class="py-3 px-4 text-gray-500 text-xs">${escapeHtml(p.date || 'Today')}</td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <button onclick="editPost('${p.id}')" class="text-blue-600 hover:text-blue-800 font-semibold text-xs">Edit</button>
+            <button onclick="deletePost('${p.id}')" class="text-red-600 hover:text-red-800 font-semibold text-xs">Delete</button>
+            <a href="../?p=${p.id}" target="_blank" class="text-gray-500 hover:text-gray-700 text-xs">View</a>
           </td>
         </tr>
       `).join('');
     }
 
-    function newPost() {
-      document.getElementById('postId').value = '';
-      document.getElementById('postTitle').value = '';
-      document.getElementById('postSlug').value = '';
-      document.getElementById('postImage').value = '';
-      document.getElementById('featuredImageFile').value = '';
-      document.getElementById('postContent').value = '';
-      previewImage();
-      document.getElementById('editorHeading').innerText = 'Create Post';
-      switchTab('editor');
-    }
-
-    function editPost(id) {
-      const p = posts.find(item => item.id == id);
-      if (!p) return;
-      document.getElementById('postId').value = p.id;
-      document.getElementById('postTitle').value = p.title || '';
-      document.getElementById('postSlug').value = p.slug || '';
-      document.getElementById('postImage').value = p.image || '';
-      document.getElementById('postContent').value = p.content || '';
-      previewImage();
-      document.getElementById('editorHeading').innerText = 'Edit Post';
-      switchTab('editor');
-    }
-
-    async function savePost(e) {
-      e.preventDefault();
-      const payload = {
-        id: document.getElementById('postId').value || undefined,
-        title: document.getElementById('postTitle').value,
-        slug: document.getElementById('postSlug').value,
-        image: document.getElementById('postImage').value,
-        content: document.getElementById('postContent').value
-      };
-      await fetch('/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'post', data: payload })
+    // Image compression helper: 800x420 JPEG at 0.72 quality
+    function compressImageFile(file, maxWidth = 800, maxHeight = 420, quality = 0.72) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = maxWidth;
+            canvas.height = maxHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, maxWidth, maxHeight);
+            
+            let srcX = 0, srcY = 0, srcWidth = img.width, srcHeight = img.height;
+            const aspect = maxWidth / maxHeight;
+            const imgAspect = img.width / img.height;
+            if (imgAspect > aspect) {
+              srcWidth = img.height * aspect;
+              srcX = (img.width - srcWidth) / 2;
+            } else {
+              srcHeight = img.width / aspect;
+              srcY = (img.height - srcHeight) / 2;
+            }
+            ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, maxWidth, maxHeight);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = () => resolve(e.target.result);
+          img.src = e.target.result;
+        };
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
       });
+    }
+
+    async function handleFeaturedImageUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const compressedDataUrl = await compressImageFile(file);
+      if (compressedDataUrl) {
+        if (document.getElementById('postImage')) document.getElementById('postImage').value = compressedDataUrl;
+        setFeaturedPreviewSrc(compressedDataUrl);
+      }
+    }
+
+    function setFeaturedPreviewSrc(src) {
+      const previewBox = document.getElementById('imagePreviewBox');
+      const previewImg = document.getElementById('imagePreview');
+      if (previewBox && previewImg) {
+        previewImg.src = src;
+        previewBox.classList.remove('hidden');
+      }
+    }
+
+    function removeFeaturedImage() {
+      if (document.getElementById('postImage')) document.getElementById('postImage').value = '';
+      if (document.getElementById('featuredImageFile')) document.getElementById('featuredImageFile').value = '';
+      const previewBox = document.getElementById('imagePreviewBox');
+      if (previewBox) previewBox.classList.add('hidden');
+    }
+
+    function updateImagePreviewFromUrl() {
+      const url = val('postImage');
+      if (url) {
+        setFeaturedPreviewSrc(url);
+      } else {
+        removeFeaturedImage();
+      }
+    }
+
+    async function handleMediaUpload(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+      const editor = document.getElementById('editorCanvas');
+      if (!editor) return;
+
+      for (const file of files) {
+        if (file.type.startsWith('image/')) {
+          const compressed = await compressImageFile(file);
+          const imgHtml = `<p><img src="${compressed}" alt="Uploaded media" class="max-w-full h-auto rounded shadow-sm my-3" /></p>`;
+          editor.innerHTML += imgHtml;
+        } else if (file.type.startsWith('video/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const vidHtml = `<p><video src="${e.target.result}" controls class="max-w-full rounded my-3"></video></p>`;
+            editor.innerHTML += vidHtml;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+
+    function embedVideoPrompt() {
+      const url = prompt('Enter YouTube or Video URL:');
+      if (!url) return;
+      const editor = document.getElementById('editorCanvas');
+      if (!editor) return;
+
+      let embedHtml = '';
+      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let videoId = '';
+        if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
+        else if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
+        if (videoId) {
+          embedHtml = `<div class="my-4 aspect-video"><iframe class="w-full h-64 md:h-96 rounded" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`;
+        }
+      }
+      if (!embedHtml) {
+        embedHtml = `<p><video src="${url}" controls class="max-w-full rounded my-3"></video></p>`;
+      }
+      editor.innerHTML += embedHtml;
+    }
+
+    function autoGeneratePost() {
+      if (document.getElementById('postTitle')) document.getElementById('postTitle').value = 'AI & The Future of Cloud Development';
+      if (document.getElementById('postCategory')) document.getElementById('postCategory').value = 'Technology';
+      if (document.getElementById('postExcerpt')) document.getElementById('postExcerpt').value = 'Exploring how edge workers and artificial intelligence are revolutionizing web deployment.';
+      const sampleContent = `<h2>The Edge Computing Revolution</h2><p>Modern applications require ultra-low latency and instant responses. By combining Cloudflare Workers with lightweight HTML5 micro-frontends, developers can build instant-loading publications without complex servers.</p><h3>Key Advantages:</h3><ul><li>Instant global deployment</li><li>Zero server management</li><li>Compact local storage caching</li></ul><p>Start publishing your content with confidence today!</p>`;
+      if (document.getElementById('editorCanvas')) document.getElementById('editorCanvas').innerHTML = sampleContent;
+      if (document.getElementById('htmlSourceTextarea')) document.getElementById('htmlSourceTextarea').value = sampleContent;
+      showToast('✨ Post auto-generated!');
+    }
+
+    function switchEditorMode(mode) {
+      const visualCanvas = document.getElementById('editorCanvas');
+      const codeArea = document.getElementById('htmlSourceTextarea');
+      const vBtn = document.getElementById('modeVisualBtn');
+      const cBtn = document.getElementById('modeCodeBtn');
+
+      if (mode === 'visual') {
+        if (codeArea && visualCanvas) visualCanvas.innerHTML = codeArea.value;
+        visualCanvas?.classList.remove('hidden');
+        codeArea?.classList.add('hidden');
+        vBtn?.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
+        vBtn?.classList.remove('text-gray-600');
+        cBtn?.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
+        cBtn?.classList.add('text-gray-600');
+      } else {
+        if (codeArea && visualCanvas) codeArea.value = visualCanvas.innerHTML;
+        visualCanvas?.classList.add('hidden');
+        codeArea?.classList.remove('hidden');
+        cBtn?.classList.add('bg-white', 'text-gray-800', 'shadow-sm');
+        cBtn?.classList.remove('text-gray-600');
+        vBtn?.classList.remove('bg-white', 'text-gray-800', 'shadow-sm');
+        vBtn?.classList.add('text-gray-600');
+      }
+    }
+
+    function formatDoc(cmd, val = null) {
+      document.execCommand(cmd, false, val);
+    }
+
+    function insertLinkPrompt() {
+      const url = prompt('Enter URL:');
+      if (url) document.execCommand('createLink', false, url);
+    }
+
+    function setupPasteAndDrop() {
+      const editor = document.getElementById('editorCanvas');
+      if (!editor) return;
+
+      editor.addEventListener('paste', async (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (const item of items) {
+          if (item.type.indexOf('image') !== -1) {
+            e.preventDefault();
+            const file = item.getAsFile();
+            if (file) {
+              const compressed = await compressImageFile(file);
+              document.execCommand('insertHTML', false, `<img src="${compressed}" alt="Pasted Image" class="max-w-full h-auto rounded shadow-sm my-3" />`);
+            }
+          } else if (item.type === 'text/plain') {
+            item.getAsString((text) => {
+              if (text && (text.includes('youtube.com') || text.includes('youtu.be'))) {
+                let videoId = '';
+                if (text.includes('youtu.be/')) videoId = text.split('youtu.be/')[1].split('?')[0];
+                else if (text.includes('v=')) videoId = text.split('v=')[1].split('&')[0];
+                if (videoId) {
+                  e.preventDefault();
+                  document.execCommand('insertHTML', false, `<div class="my-4 aspect-video"><iframe class="w-full h-64 md:h-96 rounded" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`);
+                }
+              }
+            });
+          }
+        }
+      });
+    }
+
+    async function savePost() {
+      const title = val('postTitle').trim() || 'Untitled Post';
+      const category = val('postCategory').trim() || 'General';
+      const excerpt = val('postExcerpt').trim();
+      let image = val('postImage').trim();
+
+      const isCodeMode = !document.getElementById('htmlSourceTextarea')?.classList.contains('hidden');
+      let content = isCodeMode ? val('htmlSourceTextarea') : (document.getElementById('editorCanvas')?.innerHTML || '');
+
+      const id = editingPostId || String(Date.now());
+      const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      const newPostObj = {
+        id: id,
+        title: title,
+        category: category,
+        excerpt: excerpt,
+        content: content,
+        image: image,
+        date: dateStr
+      };
+
+      if (editingPostId) {
+        currentPosts = currentPosts.map(p => String(p.id) === String(editingPostId) ? newPostObj : p);
+      } else {
+        currentPosts.unshift(newPostObj);
+      }
+
+      await pushStateToApi();
+      renderPosts();
+      showToast('✓ Post published successfully!');
       switchTab('posts');
-      loadPosts();
     }
 
-    async function deletePost(id) {
-      if (!confirm('Delete post?')) return;
-      await fetch('/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'delete_post', id })
-      });
-      loadPosts();
+    function populateSettings() {
+      const ads = currentConfig.ads || {};
+      for (let i = 1; i <= 8; i++) {
+        const el = document.getElementById(`ad_slot_${i}`);
+        if (el) el.value = ads[`ad_slot_${i}`] || ads[`ad${i}`] || '';
+      }
+
+      if (document.getElementById('customHeaderCode')) document.getElementById('customHeaderCode').value = currentConfig.customHeaderCode || '';
+      if (document.getElementById('enableHeaderCode')) document.getElementById('enableHeaderCode').checked = currentConfig.enableHeaderCode !== false;
+      if (document.getElementById('analyticsCode')) document.getElementById('analyticsCode').value = currentConfig.analyticsCode || '';
+      if (document.getElementById('enableAnalytics')) document.getElementById('enableAnalytics').checked = currentConfig.enableAnalytics !== false;
     }
 
-    async function loadConfig() {
-      try {
-        const res = await fetch('/api/config');
-        const cfg = await res.json();
-        const slots = ['before_title', 'under_image', 'before_paragraph', '30_percent', '60_percent', '80_percent', 'after_post', 'popup'];
-        slots.forEach(s => {
-          if (cfg['ad_' + s]) document.getElementById('ad_' + s).value = cfg['ad_' + s];
-          if (cfg['ad_' + s + '_enabled']) document.getElementById('ad_' + s + '_enabled').checked = true;
-        });
-        if (cfg.customHeaderCode) document.getElementById('customHeaderCode').value = cfg.customHeaderCode;
-        if (cfg.customHeaderEnabled) document.getElementById('customHeaderEnabled').checked = true;
-        if (cfg.analyticsCode) document.getElementById('analyticsCode').value = cfg.analyticsCode;
-        if (cfg.analyticsEnabled) document.getElementById('analyticsEnabled').checked = true;
-        if (cfg.adminUsername) document.getElementById('adminUsername').value = cfg.adminUsername;
-      } catch (err) {}
+    async function saveAdSettings(event) {
+      if (event) event.preventDefault();
+      const ads = {};
+      for (let i = 1; i <= 8; i++) {
+        ads[`ad_slot_${i}`] = val(`ad_slot_${i}`);
+      }
+      currentConfig.ads = ads;
+      await pushStateToApi();
+      showToast('✓ Ad settings saved successfully!');
     }
 
-    async function saveAds(e) {
-      e.preventDefault();
-      const data = {};
-      const slots = ['before_title', 'under_image', 'before_paragraph', '30_percent', '60_percent', '80_percent', 'after_post', 'popup'];
-      slots.forEach(s => {
-        data['ad_' + s] = document.getElementById('ad_' + s).value;
-        data['ad_' + s + '_enabled'] = document.getElementById('ad_' + s + '_enabled').checked;
-      });
-      await fetch('/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'config', data })
-      });
-      alert('Ad placements saved!');
+    async function saveHeaderSettings(event) {
+      if (event) event.preventDefault();
+      currentConfig.customHeaderCode = val('customHeaderCode');
+      currentConfig.enableHeaderCode = chk('enableHeaderCode');
+      currentConfig.analyticsCode = val('analyticsCode');
+      currentConfig.enableAnalytics = chk('enableAnalytics');
+      await pushStateToApi();
+      showToast('✓ Header & Analytics settings saved successfully!');
     }
 
-    async function saveCodes(e) {
-      e.preventDefault();
-      const data = {
-        customHeaderCode: document.getElementById('customHeaderCode').value,
-        customHeaderEnabled: document.getElementById('customHeaderEnabled').checked,
-        analyticsCode: document.getElementById('analyticsCode').value,
-        analyticsEnabled: document.getElementById('analyticsEnabled').checked
-      };
-      await fetch('/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'config', data })
-      });
-      alert('Header & Analytics codes saved!');
+    async function savePassword(event) {
+      if (event) event.preventDefault();
+      const p1 = val('newAdminPassword');
+      const p2 = val('confirmAdminPassword');
+      if (p1 !== p2) {
+        alert('Passwords do not match!');
+        return;
+      }
+      currentConfig.adminPassword = p1;
+      await pushStateToApi();
+      showToast('✓ Password updated successfully!');
+      if (document.getElementById('newAdminPassword')) document.getElementById('newAdminPassword').value = '';
+      if (document.getElementById('confirmAdminPassword')) document.getElementById('confirmAdminPassword').value = '';
     }
 
-    async function savePassword(e) {
-      e.preventDefault();
-      const username = document.getElementById('adminUsername').value;
-      const password = document.getElementById('newPassword').value;
-      await fetch('/api/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'password', username, password })
-      });
-      alert('Password updated!');
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
   </script>
 </body>
