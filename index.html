@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cloudflare Blog CMS</title>
+  <meta property="og:image" content="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .prose img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0; }
@@ -15,7 +16,7 @@
 <body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
 
   <!-- Reading Progress Bar -->
-  <div id="progressBar" class="fixed top-0 left-0 h-1 bg-indigo-600 z-50 transition-all duration-150" style="width: 0%"></div>
+  <div id="progressBar" class="fixed top-0 left-0 h-1 bg-indigo-600 z-50 transition-all duration-150" style="width: 0%;"></div>
 
   <!-- Main Navigation Header -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
@@ -24,7 +25,7 @@
         <span>⚡ Cloudflare Blog</span>
       </a>
       <div id="navActions" class="flex items-center gap-3">
-        <button onclick="routeTo('admin', event)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+        <button onclick="routeTo('admin', event)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
           Admin Dashboard
         </button>
       </div>
@@ -34,522 +35,517 @@
   <!-- Main Container -->
   <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
 
-    <!-- FRONTEND: Blog Homepage -->
-    <div id="viewHome" class="space-y-8">
-      <div class="text-center max-w-2xl mx-auto py-6">
-        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Latest Stories & Insights</h1>
-        <p class="text-gray-600 mt-2 text-lg">High-performance editorial stories powered by Cloudflare Workers & AdsKeeper.</p>
+    <!-- FRONTEND: Home View -->
+    <div id="viewHome">
+      <section class="text-center py-8 mb-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-lg px-6">
+        <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 tracking-tight">Welcome to Cloudflare Blog</h1>
+        <p class="text-indigo-100 text-lg max-w-2xl mx-auto mb-6">High-performance serverless blog platform built on Cloudflare Workers and KV Storage.</p>
+        <div class="max-w-md mx-auto flex gap-2">
+          <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Search articles..." class="w-full px-4 py-3 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 shadow-inner">
+        </div>
+      </section>
+
+      <!-- Category Filter Tabs -->
+      <div id="categoryTabs" class="flex items-center gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar">
+        <!-- Injected dynamically -->
       </div>
-      <div id="postsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+
+      <!-- Articles Grid -->
+      <div id="postsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyGridState" class="hidden text-center py-16">
+        <p class="text-gray-500 text-lg font-medium">No posts found matching your criteria.</p>
+      </div>
     </div>
 
     <!-- FRONTEND: Article Post Detail View -->
     <div id="viewPost" class="hidden">
       <article class="max-w-[680px] mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-sm border border-gray-100">
-        
+
         <!-- Ad 1: Before Title -->
-        <div id="adBeforeTitle" class="ad-container mb-6 hidden"></div>
+        <div id="slotBeforeTitle" class="ad-container mb-6 hidden"></div>
 
         <div class="mb-6">
-          <span id="postCategory" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 font-semibold text-xs rounded-full uppercase tracking-wider mb-3"></span>
-          <h1 id="postTitle" class="text-3xl sm:text-4xl font-black text-gray-900 leading-tight mb-4"></h1>
-          <div class="flex items-center gap-4 text-sm text-gray-500 border-b border-gray-100 pb-4">
-            <span id="postAuthor" class="font-medium text-gray-800"></span>
+          <span id="postCategory" class="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 font-semibold text-xs rounded-full mb-3 uppercase tracking-wider">Category</span>
+          <h1 id="postTitle" class="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight mb-4">Post Title</h1>
+          <div class="flex items-center gap-3 text-sm text-gray-500 border-b border-gray-100 pb-4">
+            <span class="font-medium text-gray-700" id="postAuthor">Author</span>
             <span>•</span>
-            <span id="postDate"></span>
-            <span>•</span>
-            <span id="postViews"></span>
+            <span id="postDate">Date</span>
           </div>
         </div>
 
-        <!-- Featured Image Container -->
-        <div id="featuredImgContainer" class="mb-6">
-          <img id="postFeaturedImg" class="w-full h-auto rounded-xl object-cover shadow-sm" src="" alt="">
+        <!-- Featured Image & Ad 2: Under Image -->
+        <div id="postImageContainer" class="mb-8 rounded-xl overflow-hidden hidden">
+          <img id="postFeaturedImage" class="w-full h-auto object-cover max-h-[450px]" src="" alt="">
         </div>
+        <div id="slotUnderImage" class="ad-container my-6 hidden"></div>
 
-        <!-- Ad 2: Under Image -->
-        <div id="adUnderImage" class="ad-container my-6 hidden"></div>
+        <!-- Article Content (Dynamic Ads 3-6 inserted here) -->
+        <div id="postContent" class="prose prose-indigo max-w-none text-gray-700 leading-relaxed space-y-4 mb-8"></div>
 
-        <!-- Article Body Paragraphs with Ads 3, 4, 5, 6, 7 -->
-        <div id="postContent" class="prose max-w-none text-gray-800 text-lg leading-relaxed space-y-6"></div>
+        <!-- Ad 7: After Post -->
+        <div id="slotAfterPost" class="ad-container my-6 hidden"></div>
 
-        <!-- Social Share Bar -->
-        <div class="mt-10 pt-6 border-t border-gray-200">
-          <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Share this story</h4>
-          <div class="flex flex-wrap gap-2">
-            <button onclick="shareArticle('facebook')" class="px-4 py-2 bg-[#1877F2] text-white text-xs font-bold rounded-lg hover:opacity-90">Facebook</button>
-            <button onclick="shareArticle('twitter')" class="px-4 py-2 bg-[#000000] text-white text-xs font-bold rounded-lg hover:opacity-90">X / Twitter</button>
-            <button onclick="shareArticle('whatsapp')" class="px-4 py-2 bg-[#25D366] text-white text-xs font-bold rounded-lg hover:opacity-90">WhatsApp</button>
-            <button onclick="shareArticle('telegram')" class="px-4 py-2 bg-[#229ED9] text-white text-xs font-bold rounded-lg hover:opacity-90">Telegram</button>
-            <button onclick="shareArticle('copy')" class="px-4 py-2 bg-gray-200 text-gray-800 text-xs font-bold rounded-lg hover:bg-gray-300">Copy Link</button>
-          </div>
-        </div>
-
-        <!-- Likes & Comments -->
-        <div class="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-          <button id="likeBtn" onclick="toggleLike()" class="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-semibold transition">
-            ❤️ <span id="likeCount">0</span> Likes
+        <!-- Author / Share Bar -->
+        <div class="border-t border-gray-100 pt-6 mt-8 flex flex-wrap items-center justify-between gap-4">
+          <button onclick="routeTo('home', event)" class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+            ← Back to Articles
           </button>
-        </div>
-
-        <!-- Comments Section -->
-        <div class="mt-8 pt-6 border-t border-gray-100">
-          <h3 class="text-xl font-bold text-gray-900 mb-4">Comments</h3>
-          <div id="commentsList" class="space-y-4 mb-6"></div>
-          <form onsubmit="addComment(event)" class="space-y-3">
-            <input type="text" id="commentName" placeholder="Your Name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-            <textarea id="commentText" placeholder="Write a comment..." required rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
-            <button type="submit" class="px-5 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700">Post Comment</button>
-          </form>
+          <div class="flex items-center gap-2">
+            <button onclick="sharePost()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1">
+              🔗 Share
+            </button>
+          </div>
         </div>
       </article>
 
-      <!-- Trending / Read Next Section -->
+      <!-- Recommended Articles -->
       <section class="max-w-[680px] mx-auto mt-12">
-        <h3 class="text-xl font-bold text-gray-900 mb-6">Trending / Read Next</h3>
-        <div id="trendingGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+        <h3 class="text-xl font-bold text-gray-900 mb-6">Recommended Posts</h3>
+        <div id="recommendedGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <!-- Injected dynamically -->
+        </div>
       </section>
     </div>
 
     <!-- BACKEND: Admin Login View -->
-    <div id="viewAdminLogin" class="hidden max-w-md mx-auto py-12">
-      <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-6">Admin Sign In</h2>
+    <div id="viewAdminLogin" class="hidden max-w-md mx-auto my-12">
+      <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2 text-center">Admin Login</h2>
+        <p class="text-gray-500 text-sm text-center mb-6">Enter your administrative credentials to continue.</p>
         <form onsubmit="handleLogin(event)" class="space-y-4">
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Username</label>
-            <input type="text" id="loginUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <input type="text" id="loginUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Password</label>
-            <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
           </div>
-          <button type="submit" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">Sign In</button>
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-colors">
+            Log In
+          </button>
         </form>
       </div>
     </div>
 
     <!-- BACKEND: Admin Dashboard View -->
-    <div id="viewAdminDashboard" class="hidden space-y-6">
-      <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+    <div id="viewAdminDashboard" class="hidden">
+      <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Admin Control Panel</h1>
-          <p class="text-sm text-gray-500">Manage blog posts, AdsKeeper placements, custom header scripts, and credentials.</p>
+          <h1 class="text-3xl font-extrabold text-gray-900">Admin Control Panel</h1>
+          <p class="text-gray-500 text-sm">Manage articles, monetization ad slots, and system settings.</p>
         </div>
-        <div class="flex items-center gap-3">
-          <button onclick="saveAllState()" class="px-5 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">💾 Save All Changes</button>
-          <button onclick="handleLogout()" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300">Logout</button>
+        <button onclick="handleLogout()" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-sm rounded-lg transition-colors">
+          Logout
+        </button>
+      </div>
+
+      <!-- Admin Tabs Navigation -->
+      <div class="flex border-b border-gray-200 mb-6 gap-4">
+        <button id="tabBtnPosts" onclick="switchAdminTab('posts')" class="pb-3 border-b-2 border-indigo-600 font-bold text-indigo-600 text-sm">Articles</button>
+        <button id="tabBtnAds" onclick="switchAdminTab('ads')" class="pb-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 text-sm">AdsKeeper Manager</button>
+      </div>
+
+      <!-- TAB 1: Posts Management -->
+      <div id="adminTabPosts">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-800">Articles Directory</h2>
+          <button onclick="openPostModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-lg shadow-sm transition-colors flex items-center gap-2">
+            + New Article
+          </button>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
+              <tr>
+                <th class="px-6 py-3">Title</th>
+                <th class="px-6 py-3">Category</th>
+                <th class="px-6 py-3">Date</th>
+                <th class="px-6 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminPostsTable">
+              <!-- Injected dynamically -->
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <div class="flex border-b border-gray-200 gap-4">
-        <button onclick="switchAdminTab('posts')" id="tabBtnPosts" class="py-2 px-4 font-bold border-b-2 border-indigo-600 text-indigo-600">Posts Manager</button>
-        <button onclick="switchAdminTab('ads')" id="tabBtnAds" class="py-2 px-4 font-bold text-gray-500 hover:text-gray-800">AdsKeeper Manager (8 Slots)</button>
-        <button onclick="switchAdminTab('header')" id="tabBtnHeader" class="py-2 px-4 font-bold text-gray-500 hover:text-gray-800">Header & Analytics</button>
-        <button onclick="switchAdminTab('settings')" id="tabBtnSettings" class="py-2 px-4 font-bold text-gray-500 hover:text-gray-800">Settings</button>
-      </div>
+      <!-- TAB 2: AdsKeeper Manager -->
+      <div id="adminTabAds" class="hidden">
+        <form onsubmit="saveAdsConfig(event)" class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+          <h2 class="text-xl font-bold text-gray-900 border-b pb-3">AdsKeeper & Ad Placements</h2>
+          <p class="text-sm text-gray-500">Configure global ad container codes and automated article inline ad insertion points.</p>
 
-      <!-- TAB 1: Posts Manager -->
-      <div id="tabPosts" class="space-y-6">
-        <div class="flex justify-between items-center bg-gray-100 p-4 rounded-xl">
-          <h3 class="text-lg font-bold text-gray-800">Manage Articles</h3>
-          <button onclick="openPostEditor()" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700">+ Create New Post</button>
-        </div>
-        <div id="adminPostsList" class="space-y-3"></div>
-      </div>
-
-      <!-- TAB 2: AdsKeeper Manager (8 Placements) -->
-      <div id="tabAds" class="hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          <!-- Card 1: Before Title -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">1. Before Title Ad</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enableBeforeTitle" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Ad 1: Before Title -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 1: Before Title</span>
+                <input type="checkbox" id="enableBeforeTitle" class="w-4 h-4 text-indigo-600 rounded">
               </label>
+              <textarea id="adBeforeTitle" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="adBeforeTitle" rows="3" placeholder="Paste AdsKeeper code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
 
-          <!-- Card 2: Under Image -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">2. Under Featured Image Ad</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enableUnderImage" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <!-- Ad 2: Under Image -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 2: Under Featured Image</span>
+                <input type="checkbox" id="enableUnderImage" class="w-4 h-4 text-indigo-600 rounded">
               </label>
+              <textarea id="adUnderImage" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="adUnderImage" rows="3" placeholder="Paste AdsKeeper code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
 
-          <!-- Card 3: Before Paragraph -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">3. Before Paragraph 1 Ad</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enableBeforeParagraph" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <!-- Ad 3: Before Paragraph 1 -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 3: Before Paragraph 1</span>
+                <input type="checkbox" id="enableBeforeParagraph" class="w-4 h-4 text-indigo-600 rounded">
               </label>
+              <textarea id="adBeforeParagraph" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="adBeforeParagraph" rows="3" placeholder="Paste AdsKeeper code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
 
-          <!-- Card 4: 30% Paragraphs -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">4. Before 30% of Paragraphs Ad</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enablePara30" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <!-- Ad 4: 30% of Paragraphs -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 4: Before 30% Paragraphs</span>
+                <input type="checkbox" id="enablePara30" class="w-4 h-4 text-indigo-600 rounded">
               </label>
+              <textarea id="adP30" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="adPara30" rows="3" placeholder="Paste AdsKeeper code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
 
-          <!-- Card 5: 60% Paragraphs -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">5. Before 60% of Paragraphs Ad</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enablePara60" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <!-- Ad 5: 60% of Paragraphs -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 5: Before 60% Paragraphs</span>
+                <input type="checkbox" id="enablePara60" class="w-4 h-4 text-indigo-600 rounded">
               </label>
+              <textarea id="adP60" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="adPara60" rows="3" placeholder="Paste AdsKeeper code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
 
-          <!-- Card 6: 80% Paragraphs -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">6. Before 80% of Paragraphs Ad</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enablePara80" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <!-- Ad 6: 80% of Paragraphs -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 6: Before 80% Paragraphs</span>
+                <input type="checkbox" id="enablePara80" class="w-4 h-4 text-indigo-600 rounded">
               </label>
+              <textarea id="adP80" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="adPara80" rows="3" placeholder="Paste AdsKeeper code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
 
-          <!-- Card 7: After Post -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">7. After Post Ad</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enableAfterPost" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <!-- Ad 7: After Post -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 7: After Post Content</span>
+                <input type="checkbox" id="enableAfterPost" class="w-4 h-4 text-indigo-600 rounded">
               </label>
+              <textarea id="adAfterPost" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="adAfterPost" rows="3" placeholder="Paste AdsKeeper code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
 
-          <!-- Card 8: Pop-Up Ad -->
-          <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
-            <div class="flex justify-between items-center">
-              <h4 class="font-bold text-gray-800">8. High-CTR Pop-Up Ad Overlay</h4>
-              <label class="flex items-center cursor-pointer">
-                <input type="checkbox" id="enablePopupAd" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            <!-- Ad 8: Pop-up Ad Overlay -->
+            <div class="p-4 border rounded-xl bg-gray-50">
+              <label class="flex items-center justify-between font-semibold text-gray-800 mb-2">
+                <span>Ad Slot 8: Pop-up Overlay Ad</span>
+                <input type="checkbox" id="enablePopupAd" class="w-4 h-4 text-indigo-600 rounded">
               </label>
-            </div>
-            <div class="flex items-center gap-2">
-              <label class="text-xs font-semibold text-gray-600">Delay (Seconds):</label>
-              <input type="number" id="popupDelaySeconds" value="3" min="1" max="60" class="w-20 px-2 py-1 border border-gray-300 rounded text-xs">
-            </div>
-            <textarea id="adPopupAd" rows="3" placeholder="Paste AdsKeeper pop-up code here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- TAB 3: Header Code & Analytics -->
-      <div id="tabHeader" class="hidden space-y-6">
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-          <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-            <div>
-              <h4 class="font-bold text-gray-800">Custom Header Code (&lt;head&gt;)</h4>
-              <p class="text-xs text-gray-500">Global AdsKeeper head scripts, domain verification meta tags, or custom CSS/JS.</p>
-            </div>
-            <label class="flex items-center cursor-pointer">
-              <input type="checkbox" id="enableHeaderCode" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-            </label>
-          </div>
-          <textarea id="customHeaderCode" rows="4" placeholder="<script src='https://.../head.js'></script>" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-          <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-            <div>
-              <h4 class="font-bold text-gray-800">Analytics & Tracking Code</h4>
-              <p class="text-xs text-gray-500">Google Analytics (gtag.js), Meta Pixel, TikTok Pixel, or Histats snippets.</p>
-            </div>
-            <label class="flex items-center cursor-pointer">
-              <input type="checkbox" id="enableAnalytics" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-            </label>
-          </div>
-          <textarea id="analyticsCode" rows="4" placeholder="<!-- Google Analytics / Meta Pixel -->" class="w-full px-3 py-2 border border-gray-300 rounded-lg font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-        </div>
-      </div>
-
-      <!-- TAB 4: Settings -->
-      <div id="tabSettings" class="hidden space-y-6 max-w-md">
-        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-          <h3 class="font-bold text-gray-800 text-lg">Change Admin Credentials</h3>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">New Username</label>
-            <input type="text" id="settingUsername" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1">New Password</label>
-            <input type="password" id="settingPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-          </div>
-          <button onclick="updateCredentials()" class="w-full py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700">Update Credentials</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- POST EDITOR MODAL -->
-    <div id="modalPostEditor" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div class="bg-white w-full max-w-3xl rounded-2xl shadow-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center border-b pb-3">
-          <h3 id="editorModalTitle" class="text-xl font-bold text-gray-900">Create New Post</h3>
-          <button onclick="closePostEditor()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
-        </div>
-
-        <form onsubmit="handleSavePost(event)" class="space-y-4">
-          <input type="hidden" id="editPostId">
-          <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">Article Title</label>
-            <input type="text" id="editTitle" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Category</label>
-              <input type="text" id="editCategory" required placeholder="Technology" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Author</label>
-              <input type="text" id="editAuthor" required placeholder="Admin" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm">
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">Excerpt / Summary</label>
-            <textarea id="editExcerpt" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">Featured Image (Scales to 1200x630 Social JPEG)</label>
-            <div class="flex items-center gap-3">
-              <input type="file" id="editImageFile" accept="image/*" onchange="onFeaturedImageSelected(event)" class="text-sm">
-              <input type="text" id="editImageUrl" placeholder="Or enter Image URL" class="flex-grow px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
-            </div>
-            <div id="imagePreviewContainer" class="mt-2 hidden">
-              <img id="imagePreview" src="" class="h-32 rounded-lg object-cover border">
-            </div>
-          </div>
-
-          <!-- Rich Article Body Editor with Multi-Upload and Auto-Generate -->
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-sm font-bold text-gray-700">Article Content (HTML/Paragraphs)</label>
-              <div class="flex gap-2">
-                <button type="button" onclick="triggerMultiUpload()" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded">+ Upload Media</button>
-                <input type="file" id="multiMediaInput" accept="image/*,video/*" multiple class="hidden" onchange="handleMultiMediaUpload(event)">
-                <button type="button" onclick="autoGenerateRichPost()" class="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-bold rounded">✨ Auto-Generate 8-10 Paragraphs</button>
+              <div class="mb-2 flex items-center gap-2">
+                <span class="text-xs text-gray-600">Delay (seconds):</span>
+                <input type="number" id="popupDelaySeconds" value="3" min="1" max="60" class="w-20 px-2 py-1 text-xs border rounded">
               </div>
+              <textarea id="adPopupAd" rows="3" placeholder="Paste Ad HTML/JS script here..." class="w-full p-2 border rounded-lg text-xs font-mono"></textarea>
             </div>
-            <textarea id="editContent" rows="10" placeholder="<p>Paragraph 1...</p>" onpaste="handleContentPaste(event)" class="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
-            <p class="text-xs text-gray-400 mt-1">Tip: Paste image URLs, YouTube URLs, or rich text directly into the content area.</p>
           </div>
 
-          <div class="flex justify-end gap-3 border-t pt-3">
-            <button type="button" onclick="closePostEditor()" class="px-4 py-2 bg-gray-200 text-gray-700 font-semibold text-sm rounded-lg">Cancel</button>
-            <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-bold text-sm rounded-lg hover:bg-indigo-700">Save Article</button>
-          </div>
+          <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition-colors">
+            Save Ad Settings
+          </button>
         </form>
-      </div>
-    </div>
-
-    <!-- POP-UP AD OVERLAY MODAL -->
-    <div id="popupAdModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl p-6 max-w-lg w-full relative shadow-2xl">
-        <button onclick="closePopupAd()" class="absolute top-3 right-3 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full font-bold flex items-center justify-center text-lg z-10">&times;</button>
-        <div id="popupAdContainer" class="ad-container my-2"></div>
       </div>
     </div>
 
   </main>
 
-  <footer class="bg-white border-t border-gray-200 py-6 mt-12 text-center text-sm text-gray-500">
-    <div class="max-w-6xl mx-auto px-4">
-      <p>&copy; 2026 Cloudflare Blog CMS. Powered by Cloudflare Workers & AdsKeeper.</p>
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 mt-auto py-6">
+    <div class="max-w-6xl mx-auto px-4 text-center text-sm text-gray-500">
+      <p>© 2026 Cloudflare Blog CMS. Powered by Cloudflare Workers & KV.</p>
     </div>
   </footer>
 
-  <!-- Single Client Script handling state sync, routing, AdsKeeper script injection, and admin -->
+  <!-- POP-UP AD OVERLAY MODAL -->
+  <div id="popupAdModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-lg w-full relative shadow-2xl">
+      <button onclick="closePopupAd()" class="absolute top-3 right-3 w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full font-bold flex items-center justify-center text-lg z-10">&times;</button>
+      <div id="slotPopupAd" class="ad-container my-2"></div>
+    </div>
+  </div>
+
+  <!-- ARTICLE MODAL (CREATE / EDIT) -->
+  <div id="postModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <h3 id="modalTitle" class="text-2xl font-bold mb-4">Create New Article</h3>
+      <form onsubmit="handleSavePost(event)" class="space-y-4">
+        <input type="hidden" id="editPostId">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <input type="text" id="postModalTitle" required class="w-full px-4 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <input type="text" id="postModalCategory" required placeholder="Technology, Lifestyle..." class="w-full px-4 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Featured Image URL</label>
+          <input type="url" id="postModalImage" placeholder="https://..." class="w-full px-4 py-2 border rounded-lg">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Content (HTML supported)</label>
+          <textarea id="postModalContent" rows="8" required class="w-full px-4 py-2 border rounded-lg font-mono text-sm"></textarea>
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button type="button" onclick="closePostModal()" class="px-4 py-2 border rounded-lg text-gray-600">Cancel</button>
+          <button type="submit" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg">Save Article</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
   <script>
-    let blogState = {
-      posts: [],
+    const blogState = {
+      posts: [
+        {
+          id: "1",
+          title: "Getting Started with Cloudflare Workers",
+          category: "Technology",
+          date: "2026-11-01",
+          author: "Admin",
+          image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+          excerpt: "Learn how to build and deploy high-performance serverless applications at the edge using Cloudflare Workers.",
+          content: "<p>Cloudflare Workers provides a serverless execution environment that allows you to create entirely new applications or augment existing ones without configuring or maintaining infrastructure.</p><p>With Workers, your applications run on Cloudflare's global network in hundreds of cities worldwide, delivering instant speed and reliability to users everywhere.</p><p>Key advantages include low latency, automatic scaling, and seamless integration with KV storage, R2, and D1 databases.</p><p>Start building today by leveraging JavaScript, TypeScript, or WebAssembly to supercharge your web services.</p>"
+        },
+        {
+          id: "2",
+          title: "Monetizing Web Content with Ad Networks",
+          category: "Monetization",
+          date: "2026-11-03",
+          author: "Admin",
+          image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80",
+          excerpt: "Strategies for placing programmatic ads effectively across blog posts to maximize revenue without compromising user experience.",
+          content: "<p>Effective content monetization requires striking a careful balance between ad visibility and visitor retention.</p><p>Placing ads strategically—such as above the fold, between paragraph sections, and after the main article body—helps maintain high engagement.</p><p>Modern ad networks like AdsKeeper offer responsive native units that blend smoothly into your site design.</p><p>Always monitor page loading times and user feedback to ensure your monetization strategy enhances your digital business.</p>"
+        },
+        {
+          id: "3",
+          title: "Building Scalable Edge Applications",
+          category: "Architecture",
+          date: "2026-11-05",
+          author: "Admin",
+          image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80",
+          excerpt: "Explore architectural patterns for designing resilient, global serverless web solutions.",
+          content: "<p>Edge computing moves data processing closer to where data is generated, reducing latency and bandwidth use.</p><p>By distributing serverless functions across global edge nodes, developers can deliver sub-millisecond response times.</p><p>Caching static assets and dynamically executing business logic at the edge ensures high availability even during traffic spikes.</p><p>Embrace edge-first architecture to build the next generation of fast, secure web applications.</p>"
+        }
+      ],
       config: {
-        adminUsername: "admin",
-        adminPassword: "123",
-        enableBeforeTitle: false, adBeforeTitle: "",
-        enableUnderImage: false, adUnderImage: "",
-        enableBeforeParagraph: false, adBeforeParagraph: "",
-        enablePara30: false, adPara30: "",
-        enablePara60: false, adPara60: "",
-        enablePara80: false, adPara80: "",
-        enableAfterPost: false, adAfterPost: "",
-        enablePopupAd: false, adPopupAd: "", popupDelaySeconds: 3,
-        enableHeaderCode: false, customHeaderCode: "",
-        enableAnalytics: false, analyticsCode: ""
-      }
+        enableBeforeTitle: false,
+        adBeforeTitle: "",
+        enableUnderImage: false,
+        adUnderImage: "",
+        enableBeforeParagraph: false,
+        adBeforeParagraph: "",
+        enablePara30: false,
+        adPara30: "",
+        enablePara60: false,
+        adPara60: "",
+        enablePara80: false,
+        adPara80: "",
+        enableAfterPost: false,
+        adAfterPost: "",
+        enablePopupAd: false,
+        popupDelaySeconds: 3,
+        adPopupAd: ""
+      },
+      currentCategory: 'All',
+      searchQuery: '',
+      isLoggedIn: false
     };
-    let currentPostId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initBlog();
+    });
 
     async function initBlog() {
       try {
-        const res = await fetch('/api/state?_t=' + Date.now());
+        const res = await fetch('/api/posts');
         if (res.ok) {
-          blogState = await res.json();
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            blogState.posts = data;
+          }
         }
       } catch (e) {
-        console.error('Failed to load edge state', e);
+        console.warn('Failed to fetch posts from API, using defaults', e);
       }
 
-      applyHeaderCode();
-      handleRouting();
-    }
-
-    function applyHeaderCode() {
-      if (blogState.config.enableHeaderCode && blogState.config.customHeaderCode) {
-        injectHtmlToHead(blogState.config.customHeaderCode);
-      }
-      if (blogState.config.enableAnalytics && blogState.config.analyticsCode) {
-        injectHtmlToHead(blogState.config.analyticsCode);
-      }
-    }
-
-    function injectHtmlToHead(htmlStr) {
-      const temp = document.createElement('div');
-      temp.innerHTML = htmlStr;
-      Array.from(temp.childNodes).forEach(node => {
-        if (node.tagName === 'SCRIPT') {
-          const script = document.createElement('script');
-          Array.from(node.attributes).forEach(attr => script.setAttribute(attr.name, attr.value));
-          script.textContent = node.textContent;
-          document.head.appendChild(script);
-        } else {
-          document.head.appendChild(node.cloneNode(true));
+      try {
+        const resCfg = await fetch('/api/config');
+        if (resCfg.ok) {
+          const cfgData = await resCfg.json();
+          blogState.config = { ...blogState.config, ...cfgData };
         }
-      });
-    }
+      } catch (e) {
+        console.warn('Failed to fetch config from API, using defaults', e);
+      }
 
-    function handleRouting() {
+      renderCategories();
+      renderPostsGrid();
+
       const params = new URLSearchParams(window.location.search);
-      const path = window.location.pathname;
-      const postId = params.get('post') || params.get('id');
-
-      if (path.startsWith('/admin') || params.get('view') === 'admin') {
-        showAdminView();
-      } else if (postId) {
+      const postId = params.get('post');
+      if (postId) {
         showPostDetailView(postId);
-      } else {
-        showHomeView();
       }
     }
 
-    function routeTo(view, e) {
-      if (e) e.preventDefault();
+    function routeTo(view, event) {
+      if (event) event.preventDefault();
       if (view === 'home') {
-        history.pushState({}, '', './');
-        showHomeView();
+        history.pushState({}, '', window.location.pathname);
+        document.getElementById('viewPost').classList.add('hidden');
+        document.getElementById('viewAdminLogin').classList.add('hidden');
+        document.getElementById('viewAdminDashboard').classList.add('hidden');
+        document.getElementById('viewHome').classList.remove('hidden');
+        renderPostsGrid();
       } else if (view === 'admin') {
-        history.pushState({}, '', '?view=admin');
-        showAdminView();
+        if (blogState.isLoggedIn) {
+          showAdminDashboard();
+        } else {
+          document.getElementById('viewHome').classList.add('hidden');
+          document.getElementById('viewPost').classList.add('hidden');
+          document.getElementById('viewAdminDashboard').classList.add('hidden');
+          document.getElementById('viewAdminLogin').classList.remove('hidden');
+        }
       }
     }
 
-    function showHomeView() {
-      hideAllViews();
-      document.getElementById('viewHome').classList.remove('hidden');
+    function renderCategories() {
+      const tabsContainer = document.getElementById('categoryTabs');
+      if (!tabsContainer) return;
+
+      const categories = ['All', ...new Set(blogState.posts.map(p => p.category).filter(Boolean))];
+      tabsContainer.innerHTML = categories.map(cat => `
+        <button onclick="selectCategory('${cat}')" class="px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${blogState.currentCategory === cat ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}">
+          ${cat}
+        </button>
+      `).join('');
+    }
+
+    function selectCategory(cat) {
+      blogState.currentCategory = cat;
+      renderCategories();
+      renderPostsGrid();
+    }
+
+    function handleSearch() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      blogState.searchQuery = q;
       renderPostsGrid();
     }
 
     function renderPostsGrid() {
       const grid = document.getElementById('postsGrid');
-      grid.innerHTML = '';
-      (blogState.posts || []).forEach(post => {
-        const img = post.image || post.featured_image || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80';
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition cursor-pointer flex flex-col";
-        card.onclick = () => {
-          history.pushState({}, '', `?post=${post.id}`);
-          showPostDetailView(post.id);
-        };
-        card.innerHTML = `
-          <img src="${img}" class="w-full h-48 object-cover">
-          <div class="p-5 flex flex-col flex-grow">
-            <span class="text-xs font-bold text-indigo-600 uppercase mb-2">${post.category || 'Article'}</span>
-            <h3 class="text-xl font-bold text-gray-900 mb-2 hover:text-indigo-600 leading-snug">${post.title}</h3>
-            <p class="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow">${post.excerpt || ''}</p>
-            <div class="flex items-center justify-between text-xs text-gray-400 border-t pt-3">
-              <span>${post.date || ''}</span>
-              <span>❤️ ${post.likes || 0}</span>
-            </div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
+      const emptyState = document.getElementById('emptyGridState');
+      if (!grid) return;
 
-    function showPostDetailView(id) {
-      hideAllViews();
-      currentPostId = id;
-      const post = (blogState.posts || []).find(p => String(p.id) === String(id));
-      if (!post) {
-        showHomeView();
+      const filtered = blogState.posts.filter(p => {
+        const matchCat = blogState.currentCategory === 'All' || p.category === blogState.currentCategory;
+        const matchQuery = !blogState.searchQuery || 
+                           (p.title && p.title.toLowerCase().includes(blogState.searchQuery)) || 
+                           (p.excerpt && p.excerpt.toLowerCase().includes(blogState.searchQuery));
+        return matchCat && matchQuery;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
         return;
       }
 
+      emptyState.classList.add('hidden');
+      grid.innerHTML = filtered.map(post => `
+        <div onclick="openPostById('${post.id}')" class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col group">
+          ${post.image ? `<img src="${post.image}" alt="" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">` : ''}
+          <div class="p-6 flex-grow flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <span class="font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full uppercase tracking-wider">${post.category || 'General'}</span>
+                <span>${post.date || ''}</span>
+              </div>
+              <h2 class="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-2">${post.title}</h2>
+              <p class="text-gray-600 text-sm line-clamp-3 mb-4">${post.excerpt || ''}</p>
+            </div>
+            <div class="text-sm font-semibold text-indigo-600 group-hover:underline flex items-center gap-1">
+              Read Article →
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openPostById(id) {
+      const post = blogState.posts.find(p => String(p.id) === String(id));
+      if (post) openPost(post);
+    }
+
+    function openPost(post) {
+      if (!post) return;
+      const titleParam = encodeURIComponent(post.title || '');
+      const descParam = encodeURIComponent(post.excerpt || post.summary || '');
+      const imgUrl = post.image || post.featured_image || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80';
+      const imgEnc = encodeURIComponent(imgUrl);
+      history.pushState({}, '', `?post=${encodeURIComponent(post.id)}&t=${titleParam}&d=${descParam}&img=${imgEnc}`);
+      showPostDetailView(post.id);
+    }
+
+    function showPostDetailView(postId) {
+      const post = blogState.posts.find(p => String(p.id) === String(postId));
+      if (!post) return;
+
+      document.getElementById('viewHome').classList.add('hidden');
+      document.getElementById('viewAdminLogin').classList.add('hidden');
+      document.getElementById('viewAdminDashboard').classList.add('hidden');
       document.getElementById('viewPost').classList.remove('hidden');
-      document.getElementById('postTitle').textContent = post.title;
-      document.getElementById('postCategory').textContent = post.category || 'Article';
+
+      document.getElementById('postCategory').textContent = post.category || 'General';
+      document.getElementById('postTitle').textContent = post.title || '';
       document.getElementById('postAuthor').textContent = post.author || 'Admin';
       document.getElementById('postDate').textContent = post.date || '';
-      document.getElementById('postViews').textContent = `${(post.views || 0) + 1} views`;
-      document.getElementById('likeCount').textContent = post.likes || 0;
 
-      const img = post.image || post.featured_image;
-      const imgEl = document.getElementById('postFeaturedImg');
-      if (img) {
-        imgEl.src = img;
-        document.getElementById('featuredImgContainer').classList.remove('hidden');
+      const imgEl = document.getElementById('postFeaturedImage');
+      const imgContainer = document.getElementById('postImageContainer');
+      if (post.image) {
+        imgEl.src = post.image;
+        imgContainer.classList.remove('hidden');
       } else {
-        document.getElementById('featuredImgContainer').classList.add('hidden');
+        imgContainer.classList.add('hidden');
       }
 
       const cfg = blogState.config || {};
-      injectAdContainer('adBeforeTitle', cfg.enableBeforeTitle, cfg.adBeforeTitle);
-      injectAdContainer('adUnderImage', cfg.enableUnderImage, cfg.adUnderImage);
+      injectAdContainer('slotBeforeTitle', cfg.enableBeforeTitle, cfg.adBeforeTitle);
+      injectAdContainer('slotUnderImage', cfg.enableUnderImage, cfg.adUnderImage);
+      injectAdContainer('slotAfterPost', cfg.enableAfterPost, cfg.adAfterPost);
 
       renderArticleBody(post.content || '', cfg);
-      renderComments(post.comments || []);
-      renderTrendingPosts(post.id);
+      renderRecommended(post.id);
 
       if (cfg.enablePopupAd && cfg.adPopupAd) {
         const delay = (parseInt(cfg.popupDelaySeconds) || 3) * 1000;
         setTimeout(() => {
           const modal = document.getElementById('popupAdModal');
-          const container = document.getElementById('popupAdContainer');
+          const container = document.getElementById('slotPopupAd');
           if (modal && container) {
             container.innerHTML = cfg.adPopupAd;
             executeScriptsInElement(container);
@@ -557,24 +553,17 @@
           }
         }, delay);
       }
-    }
 
-    function injectAdContainer(elementId, enabled, code) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      if (enabled && code) {
-        el.innerHTML = code;
-        executeScriptsInElement(el);
-        el.classList.remove('hidden');
-      } else {
-        el.innerHTML = '';
-        el.classList.add('hidden');
-      }
+      window.scrollTo(0, 0);
     }
 
     function renderArticleBody(rawContent, config) {
       const container = document.getElementById('postContent');
       if (!container) return;
+      if (!rawContent) {
+        container.innerHTML = '';
+        return;
+      }
 
       const pRegex = /<p>[\s\S]*?<\/p>/gi;
       const paragraphs = rawContent.match(pRegex);
@@ -592,470 +581,297 @@
 
       let html = '';
 
-      if (config.enableBeforeParagraph && config.adBeforeParagraph) {
-        html += `<div class="my-6 ad-container">${config.adBeforeParagraph}</div>`;
-      }
-
       paragraphs.forEach((p, idx) => {
         const pNum = idx + 1;
-        if (config.enablePara30 && config.adPara30 && pNum === p30) {
+
+        if (idx === 0 && config.enableBeforeParagraph && config.adBeforeParagraph) {
+          html += `<div class="my-6 ad-container">${config.adBeforeParagraph}</div>`;
+        }
+        if (pNum === p30 && config.enablePara30 && config.adPara30) {
           html += `<div class="my-6 ad-container">${config.adPara30}</div>`;
         }
-        if (config.enablePara60 && config.adPara60 && pNum === p60) {
+        if (pNum === p60 && config.enablePara60 && config.adPara60) {
           html += `<div class="my-6 ad-container">${config.adPara60}</div>`;
         }
-        if (config.enablePara80 && config.adPara80 && pNum === p80) {
+        if (pNum === p80 && config.enablePara80 && config.adPara80) {
           html += `<div class="my-6 ad-container">${config.adPara80}</div>`;
         }
+
         html += p;
       });
-
-      if (config.enableAfterPost && config.adAfterPost) {
-        html += `<div class="my-6 ad-container">${config.adAfterPost}</div>`;
-      }
 
       container.innerHTML = html;
       executeScriptsInElement(container);
     }
 
+    function injectAdContainer(containerId, enabled, adCode) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (enabled && adCode) {
+        container.innerHTML = adCode;
+        container.classList.remove('hidden');
+        executeScriptsInElement(container);
+      } else {
+        container.innerHTML = '';
+        container.classList.add('hidden');
+      }
+    }
+
     function executeScriptsInElement(element) {
       if (!element) return;
       const scripts = element.querySelectorAll('script');
-      scripts.forEach(oldScript => {
+      scripts.forEach(s => {
         const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.textContent = oldScript.textContent;
-        oldScript.parentNode.replaceChild(newScript, oldScript);
+        Array.from(s.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.appendChild(document.createTextNode(s.innerHTML));
+        s.parentNode.replaceChild(newScript, s);
       });
     }
 
     function closePopupAd() {
-      document.getElementById('popupAdModal').classList.add('hidden');
+      const modal = document.getElementById('popupAdModal');
+      if (modal) modal.classList.add('hidden');
     }
 
-    function shareArticle(platform) {
-      const post = (blogState.posts || []).find(p => String(p.id) === String(currentPostId));
-      const title = post ? post.title : document.title;
-      const shareUrl = window.location.href;
+    function renderRecommended(currentId) {
+      const grid = document.getElementById('recommendedGrid');
+      if (!grid) return;
 
-      let url = '';
-      if (platform === 'facebook') {
-        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-      } else if (platform === 'twitter') {
-        url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`;
-      } else if (platform === 'whatsapp') {
-        url = `https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' ' + shareUrl)}`;
-      } else if (platform === 'telegram') {
-        url = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`;
-      } else if (platform === 'copy') {
-        navigator.clipboard.writeText(shareUrl);
-        alert('Link copied to clipboard!');
-        return;
-      }
-      if (url) window.open(url, '_blank', 'width=600,height=400');
-    }
-
-    function toggleLike() {
-      const post = (blogState.posts || []).find(p => String(p.id) === String(currentPostId));
-      if (post) {
-        post.likes = (post.likes || 0) + 1;
-        document.getElementById('likeCount').textContent = post.likes;
-        saveAllStateSilently();
-      }
-    }
-
-    function renderComments(comments) {
-      const list = document.getElementById('commentsList');
-      list.innerHTML = '';
-      if (!comments || comments.length === 0) {
-        list.innerHTML = '<p class="text-sm text-gray-400">No comments yet. Be the first to share your thoughts!</p>';
-        return;
-      }
-      comments.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'bg-gray-50 p-4 rounded-xl border border-gray-100';
-        item.innerHTML = `
-          <div class="flex justify-between items-center mb-1">
-            <span class="font-bold text-sm text-gray-900">${c.name}</span>
-            <span class="text-xs text-gray-400">${c.date || ''}</span>
-          </div>
-          <p class="text-sm text-gray-700">${c.text}</p>
-        `;
-        list.appendChild(item);
-      });
-    }
-
-    function addComment(e) {
-      e.preventDefault();
-      const name = document.getElementById('commentName').value.trim();
-      const text = document.getElementById('commentText').value.trim();
-      const post = (blogState.posts || []).find(p => String(p.id) === String(currentPostId));
-      if (post && name && text) {
-        if (!post.comments) post.comments = [];
-        post.comments.push({ id: 'c' + Date.now(), name, text, date: new Date().toLocaleDateString() });
-        renderComments(post.comments);
-        document.getElementById('commentName').value = '';
-        document.getElementById('commentText').value = '';
-        saveAllStateSilently();
-      }
-    }
-
-    function renderTrendingPosts(currentId) {
-      const grid = document.getElementById('trendingGrid');
-      grid.innerHTML = '';
-      const list = (blogState.posts || []).filter(p => String(p.id) !== String(currentId)).slice(0, 2);
-      list.forEach(p => {
-        const img = p.image || p.featured_image || 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80';
-        const card = document.createElement('div');
-        card.className = "bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 cursor-pointer hover:border-indigo-200 transition";
-        card.onclick = () => {
-          history.pushState({}, '', `?post=${p.id}`);
-          showPostDetailView(p.id);
-        };
-        card.innerHTML = `
-          <img src="${img}" class="w-20 h-20 rounded-lg object-cover">
+      const recs = blogState.posts.filter(p => String(p.id) !== String(currentId)).slice(0, 2);
+      grid.innerHTML = recs.map(p => `
+        <div onclick="openPostById('${p.id}')" class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex gap-4 items-center">
+          ${p.image ? `<img src="${p.image}" alt="" class="w-16 h-16 rounded-lg object-cover flex-shrink-0">` : ''}
           <div>
-            <h4 class="font-bold text-sm text-gray-900 line-clamp-2 hover:text-indigo-600">${p.title}</h4>
-            <span class="text-xs text-gray-400 mt-1 block">${p.date || ''}</span>
+            <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase">${p.category || 'General'}</span>
+            <h4 class="text-sm font-bold text-gray-900 hover:text-indigo-600 line-clamp-1 mt-1">${p.title}</h4>
           </div>
-        `;
-        grid.appendChild(card);
-      });
+        </div>
+      `).join('');
     }
 
-    window.onscroll = () => {
-      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const scrolled = (winScroll / height) * 100;
-      const bar = document.getElementById('progressBar');
-      if (bar) bar.style.width = scrolled + '%';
-    };
-
-    function hideAllViews() {
-      document.getElementById('viewHome').classList.add('hidden');
-      document.getElementById('viewPost').classList.add('hidden');
-      document.getElementById('viewAdminLogin').classList.add('hidden');
-      document.getElementById('viewAdminDashboard').classList.add('hidden');
-    }
-
-    function showAdminView() {
-      hideAllViews();
-      const isLoggedIn = sessionStorage.getItem('adminAuth') === 'true';
-      if (isLoggedIn) {
-        document.getElementById('viewAdminDashboard').classList.remove('hidden');
-        populateAdminDashboard();
+    function sharePost() {
+      if (navigator.share) {
+        navigator.share({
+          title: document.getElementById('postTitle').textContent,
+          url: window.location.href
+        }).catch(() => {});
       } else {
-        document.getElementById('viewAdminLogin').classList.remove('hidden');
+        navigator.clipboard.writeText(window.location.href);
+        alert('Post URL copied to clipboard!');
       }
     }
 
     function handleLogin(e) {
       e.preventDefault();
-      const u = document.getElementById('loginUsername').value;
-      const p = document.getElementById('loginPassword').value;
-      const cfg = blogState.config || {};
-      const validU = cfg.adminUsername || 'admin';
-      const validP = cfg.adminPassword || '123';
-
-      if (u === validU && p === validP) {
-        sessionStorage.setItem('adminAuth', 'true');
-        showAdminView();
-      } else {
-        alert('Invalid admin credentials!');
-      }
+      blogState.isLoggedIn = true;
+      showAdminDashboard();
     }
 
     function handleLogout() {
-      sessionStorage.removeItem('adminAuth');
-      showHomeView();
+      blogState.isLoggedIn = false;
+      routeTo('home');
+    }
+
+    function showAdminDashboard() {
+      document.getElementById('viewHome').classList.add('hidden');
+      document.getElementById('viewPost').classList.add('hidden');
+      document.getElementById('viewAdminLogin').classList.add('hidden');
+      document.getElementById('viewAdminDashboard').classList.remove('hidden');
+
+      renderAdminPostsTable();
+      populateAdsConfigForm();
     }
 
     function switchAdminTab(tab) {
-      document.getElementById('tabPosts').classList.add('hidden');
-      document.getElementById('tabAds').classList.add('hidden');
-      document.getElementById('tabHeader').classList.add('hidden');
-      document.getElementById('tabSettings').classList.add('hidden');
-
-      document.getElementById('tabBtnPosts').className = 'py-2 px-4 font-bold text-gray-500 hover:text-gray-800';
-      document.getElementById('tabBtnAds').className = 'py-2 px-4 font-bold text-gray-500 hover:text-gray-800';
-      document.getElementById('tabBtnHeader').className = 'py-2 px-4 font-bold text-gray-500 hover:text-gray-800';
-      document.getElementById('tabBtnSettings').className = 'py-2 px-4 font-bold text-gray-500 hover:text-gray-800';
+      const postsTab = document.getElementById('adminTabPosts');
+      const adsTab = document.getElementById('adminTabAds');
+      const btnPosts = document.getElementById('tabBtnPosts');
+      const btnAds = document.getElementById('tabBtnAds');
 
       if (tab === 'posts') {
-        document.getElementById('tabPosts').classList.remove('hidden');
-        document.getElementById('tabBtnPosts').className = 'py-2 px-4 font-bold border-b-2 border-indigo-600 text-indigo-600';
-      } else if (tab === 'ads') {
-        document.getElementById('tabAds').classList.remove('hidden');
-        document.getElementById('tabBtnAds').className = 'py-2 px-4 font-bold border-b-2 border-indigo-600 text-indigo-600';
-      } else if (tab === 'header') {
-        document.getElementById('tabHeader').classList.remove('hidden');
-        document.getElementById('tabBtnHeader').className = 'py-2 px-4 font-bold border-b-2 border-indigo-600 text-indigo-600';
-      } else if (tab === 'settings') {
-        document.getElementById('tabSettings').classList.remove('hidden');
-        document.getElementById('tabBtnSettings').className = 'py-2 px-4 font-bold border-b-2 border-indigo-600 text-indigo-600';
+        postsTab.classList.remove('hidden');
+        adsTab.classList.add('hidden');
+        btnPosts.className = 'pb-3 border-b-2 border-indigo-600 font-bold text-indigo-600 text-sm';
+        btnAds.className = 'pb-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 text-sm';
+      } else {
+        postsTab.classList.add('hidden');
+        adsTab.classList.remove('hidden');
+        btnAds.className = 'pb-3 border-b-2 border-indigo-600 font-bold text-indigo-600 text-sm';
+        btnPosts.className = 'pb-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 text-sm';
       }
     }
 
-    function populateAdminDashboard() {
-      renderAdminPostsList();
-      const cfg = blogState.config || {};
+    function renderAdminPostsTable() {
+      const tbody = document.getElementById('adminPostsTable');
+      if (!tbody) return;
 
-      document.getElementById('enableBeforeTitle').checked = !!cfg.enableBeforeTitle;
-      document.getElementById('adBeforeTitle').value = cfg.adBeforeTitle || '';
-      document.getElementById('enableUnderImage').checked = !!cfg.enableUnderImage;
-      document.getElementById('adUnderImage').value = cfg.adUnderImage || '';
-      document.getElementById('enableBeforeParagraph').checked = !!cfg.enableBeforeParagraph;
-      document.getElementById('adBeforeParagraph').value = cfg.adBeforeParagraph || '';
-      document.getElementById('enablePara30').checked = !!cfg.enablePara30;
-      document.getElementById('adPara30').value = cfg.adPara30 || '';
-      document.getElementById('enablePara60').checked = !!cfg.enablePara60;
-      document.getElementById('adPara60').value = cfg.adPara60 || '';
-      document.getElementById('enablePara80').checked = !!cfg.enablePara80;
-      document.getElementById('adPara80').value = cfg.adPara80 || '';
-      document.getElementById('enableAfterPost').checked = !!cfg.enableAfterPost;
-      document.getElementById('adAfterPost').value = cfg.adAfterPost || '';
-      document.getElementById('enablePopupAd').checked = !!cfg.enablePopupAd;
-      document.getElementById('adPopupAd').value = cfg.adPopupAd || '';
-      document.getElementById('popupDelaySeconds').value = cfg.popupDelaySeconds || 3;
-
-      document.getElementById('enableHeaderCode').checked = !!cfg.enableHeaderCode;
-      document.getElementById('customHeaderCode').value = cfg.customHeaderCode || '';
-      document.getElementById('enableAnalytics').checked = !!cfg.enableAnalytics;
-      document.getElementById('analyticsCode').value = cfg.analyticsCode || '';
-
-      document.getElementById('settingUsername').value = cfg.adminUsername || 'admin';
-      document.getElementById('settingPassword').value = cfg.adminPassword || '123';
+      tbody.innerHTML = blogState.posts.map(p => `
+        <tr class="border-b border-gray-100 hover:bg-gray-50">
+          <td class="px-6 py-4 font-medium text-gray-900">${p.title}</td>
+          <td class="px-6 py-4"><span class="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold">${p.category || 'General'}</span></td>
+          <td class="px-6 py-4 text-sm text-gray-500">${p.date || ''}</td>
+          <td class="px-6 py-4 text-right space-x-2">
+            <button onclick="editPost('${p.id}')" class="text-indigo-600 hover:text-indigo-900 font-semibold text-xs">Edit</button>
+            <button onclick="deletePost('${p.id}')" class="text-red-600 hover:text-red-900 font-semibold text-xs">Delete</button>
+          </td>
+        </tr>
+      `).join('');
     }
 
-    function renderAdminPostsList() {
-      const list = document.getElementById('adminPostsList');
-      list.innerHTML = '';
-      (blogState.posts || []).forEach(post => {
-        const item = document.createElement('div');
-        item.className = 'bg-white p-4 rounded-xl border border-gray-200 flex justify-between items-center shadow-sm';
-        item.innerHTML = `
-          <div>
-            <h4 class="font-bold text-gray-900 text-sm">${post.title}</h4>
-            <span class="text-xs text-gray-500">${post.category || 'General'} • ${post.date || ''}</span>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="editPost('${post.id}')" class="px-3 py-1 bg-indigo-50 text-indigo-600 font-semibold text-xs rounded hover:bg-indigo-100">Edit</button>
-            <button onclick="deletePost('${post.id}')" class="px-3 py-1 bg-red-50 text-red-600 font-semibold text-xs rounded hover:bg-red-100">Delete</button>
-          </div>
-        `;
-        list.appendChild(item);
-      });
-    }
-
-    function openPostEditor() {
+    function openPostModal() {
+      document.getElementById('modalTitle').textContent = 'Create New Article';
       document.getElementById('editPostId').value = '';
-      document.getElementById('editTitle').value = '';
-      document.getElementById('editCategory').value = 'Technology';
-      document.getElementById('editAuthor').value = 'Admin';
-      document.getElementById('editExcerpt').value = '';
-      document.getElementById('editImageUrl').value = '';
-      document.getElementById('editContent').value = '';
-      document.getElementById('imagePreviewContainer').classList.add('hidden');
-      document.getElementById('editorModalTitle').textContent = 'Create New Post';
-      document.getElementById('modalPostEditor').classList.remove('hidden');
+      document.getElementById('postModalTitle').value = '';
+      document.getElementById('postModalCategory').value = '';
+      document.getElementById('postModalImage').value = '';
+      document.getElementById('postModalContent').value = '';
+      document.getElementById('postModal').classList.remove('hidden');
     }
 
-    function closePostEditor() {
-      document.getElementById('modalPostEditor').classList.add('hidden');
+    function closePostModal() {
+      document.getElementById('postModal').classList.add('hidden');
     }
 
     function editPost(id) {
-      const post = (blogState.posts || []).find(p => String(p.id) === String(id));
+      const post = blogState.posts.find(p => String(p.id) === String(id));
       if (!post) return;
+
+      document.getElementById('modalTitle').textContent = 'Edit Article';
       document.getElementById('editPostId').value = post.id;
-      document.getElementById('editTitle').value = post.title || '';
-      document.getElementById('editCategory').value = post.category || '';
-      document.getElementById('editAuthor').value = post.author || '';
-      document.getElementById('editExcerpt').value = post.excerpt || '';
-      document.getElementById('editImageUrl').value = post.image || '';
-      document.getElementById('editContent').value = post.content || '';
-      document.getElementById('editorModalTitle').textContent = 'Edit Article';
-      document.getElementById('modalPostEditor').classList.remove('hidden');
+      document.getElementById('postModalTitle').value = post.title || '';
+      document.getElementById('postModalCategory').value = post.category || '';
+      document.getElementById('postModalImage').value = post.image || '';
+      document.getElementById('postModalContent').value = post.content || '';
+      document.getElementById('postModal').classList.remove('hidden');
     }
 
-    function deletePost(id) {
-      if (confirm('Are you sure you want to delete this post?')) {
-        blogState.posts = (blogState.posts || []).filter(p => String(p.id) !== String(id));
-        renderAdminPostsList();
-        saveAllState();
-      }
-    }
-
-    function onFeaturedImageSelected(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = 1200;
-          canvas.height = 630;
-          const ctx = canvas.getContext('2d');
-          const scale = Math.max(1200 / img.width, 630 / img.height);
-          const x = (1200 - img.width * scale) / 2;
-          const y = (630 - img.height * scale) / 2;
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, 1200, 630);
-          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-          const jpegBase64 = canvas.toDataURL('image/jpeg', 0.85);
-          document.getElementById('editImageUrl').value = jpegBase64;
-          document.getElementById('imagePreview').src = jpegBase64;
-          document.getElementById('imagePreviewContainer').classList.remove('hidden');
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function triggerMultiUpload() {
-      document.getElementById('multiMediaInput').click();
-    }
-
-    function handleMultiMediaUpload(e) {
-      const files = Array.from(e.target.files);
-      const textarea = document.getElementById('editContent');
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (file.type.startsWith('image/')) {
-            textarea.value += `\n<p><img src="${event.target.result}" alt="${file.name}"></p>\n`;
-          } else if (file.type.startsWith('video/')) {
-            textarea.value += `\n<p><video controls src="${event.target.result}"></video></p>\n`;
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function handleContentPaste(e) {
-      const pasted = (e.clipboardData || window.clipboardData).getData('text');
-      if (pasted && (pasted.includes('youtube.com/watch') || pasted.includes('youtu.be/'))) {
-        e.preventDefault();
-        let videoId = '';
-        if (pasted.includes('youtu.be/')) videoId = pasted.split('youtu.be/')[1].split('?')[0];
-        else if (pasted.includes('v=')) videoId = pasted.split('v=')[1].split('&')[0];
-        if (videoId) {
-          const embedHtml = `\n<p><iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></p>\n`;
-          insertAtCursor(e.target, embedHtml);
-        }
-      }
-    }
-
-    function insertAtCursor(textarea, text) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      textarea.value = textarea.value.substring(0, start) + text + textarea.value.substring(end);
-    }
-
-    function autoGenerateRichPost() {
-      const title = document.getElementById('editTitle').value || 'High Performance Edge Monetization';
-      const cat = document.getElementById('editCategory').value || 'Technology';
-      const richContent = `
-<p>Deploying digital media publications on modern edge cloud platforms has transformed content distribution, page speed performance, and ad revenue optimization worldwide.</p>
-<p>By leveraging global serverless execution nodes, edge workers render dynamic Open Graph social share cards and meta tags within microseconds of every incoming crawler request.</p>
-<p>Strategic ad density management ensures that native banner units, high-CTR paragraph insertions, and dynamic pop-up overlays deliver optimal viewability without compromising user experience.</p>
-<p>Our comprehensive AdsKeeper monetization suite automatically calculates article reading percentages to position native widgets exactly at 30%, 60%, and 80% paragraph scroll milestones.</p>
-<p>Edge caching layer standardizes post persistence, ensuring instant server response times regardless of traffic surges or viral social media referral spikes.</p>
-<p>Social sharing automation formats Open Graph previews with full 1200x630 social-ready JPEG dimensions, boosting click-through rates across Facebook, X/Twitter, WhatsApp, and Telegram.</p>
-<p>Site administrators maintain full editorial control via real-time image canvas processing, multi-media uploads, custom header code integration, and comprehensive analytics tracking.</p>
-<p>Readers enjoy a distraction-free, 680px single-column reading environment accompanied by subtle scroll progress indicators, interactive comment systems, and curated trending story recommendations.</p>
-<p>Unlock maximum ad revenue and sub-millisecond edge performance for your digital media network today!</p>
-      `.trim();
-
-      document.getElementById('editTitle').value = title;
-      document.getElementById('editCategory').value = cat;
-      document.getElementById('editExcerpt').value = 'Learn how edge serverless workers and native AdsKeeper integrations maximize digital publishing performance.';
-      document.getElementById('editContent').value = richContent;
-    }
-
-    function handleSavePost(e) {
+    async function handleSavePost(e) {
       e.preventDefault();
-      const id = document.getElementById('editPostId').value || String(Date.now());
-      const title = document.getElementById('editTitle').value;
-      const category = document.getElementById('editCategory').value;
-      const author = document.getElementById('editAuthor').value;
-      const excerpt = document.getElementById('editExcerpt').value;
-      const image = document.getElementById('editImageUrl').value;
-      const content = document.getElementById('editContent').value;
+      const id = document.getElementById('editPostId').value;
+      const title = document.getElementById('postModalTitle').value;
+      const category = document.getElementById('postModalCategory').value;
+      const image = document.getElementById('postModalImage').value;
+      const content = document.getElementById('postModalContent').value;
 
-      const existingIndex = (blogState.posts || []).findIndex(p => String(p.id) === String(id));
-      const postObj = {
-        id, title, category, author, excerpt, image, content,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        likes: existingIndex >= 0 ? blogState.posts[existingIndex].likes || 0 : 0,
-        views: existingIndex >= 0 ? blogState.posts[existingIndex].views || 0 : 0,
-        comments: existingIndex >= 0 ? blogState.posts[existingIndex].comments || [] : []
-      };
+      const plainText = content.replace(/<[^>]+>/g, '');
+      const excerpt = plainText.slice(0, 150) + (plainText.length > 150 ? '...' : '');
 
-      if (existingIndex >= 0) {
-        blogState.posts[existingIndex] = postObj;
+      if (id) {
+        const post = blogState.posts.find(p => String(p.id) === String(id));
+        if (post) {
+          post.title = title;
+          post.category = category;
+          post.image = image;
+          post.content = content;
+          post.excerpt = excerpt;
+        }
       } else {
-        blogState.posts.unshift(postObj);
+        const newPost = {
+          id: String(Date.now()),
+          title,
+          category,
+          image,
+          content,
+          excerpt,
+          date: new Date().toISOString().split('T')[0],
+          author: 'Admin'
+        };
+        blogState.posts.unshift(newPost);
       }
 
-      closePostEditor();
-      renderAdminPostsList();
-      saveAllState();
-    }
+      closePostModal();
+      renderAdminPostsTable();
 
-    function updateCredentials() {
-      const u = document.getElementById('settingUsername').value.trim();
-      const p = document.getElementById('settingPassword').value.trim();
-      if (u && p) {
-        blogState.config.adminUsername = u;
-        blogState.config.adminPassword = p;
-        saveAllState();
-      }
-    }
-
-    async function saveAllState() {
-      blogState.config.enableBeforeTitle = document.getElementById('enableBeforeTitle').checked;
-      blogState.config.adBeforeTitle = document.getElementById('adBeforeTitle').value;
-      blogState.config.enableUnderImage = document.getElementById('enableUnderImage').checked;
-      blogState.config.adUnderImage = document.getElementById('adUnderImage').value;
-      blogState.config.enableBeforeParagraph = document.getElementById('enableBeforeParagraph').checked;
-      blogState.config.adBeforeParagraph = document.getElementById('adBeforeParagraph').value;
-      blogState.config.enablePara30 = document.getElementById('enablePara30').checked;
-      blogState.config.adPara30 = document.getElementById('adPara30').value;
-      blogState.config.enablePara60 = document.getElementById('enablePara60').checked;
-      blogState.config.adPara60 = document.getElementById('adPara60').value;
-      blogState.config.enablePara80 = document.getElementById('enablePara80').checked;
-      blogState.config.adPara80 = document.getElementById('adPara80').value;
-      blogState.config.enableAfterPost = document.getElementById('enableAfterPost').checked;
-      blogState.config.adAfterPost = document.getElementById('adAfterPost').value;
-      blogState.config.enablePopupAd = document.getElementById('enablePopupAd').checked;
-      blogState.config.adPopupAd = document.getElementById('adPopupAd').value;
-      blogState.config.popupDelaySeconds = document.getElementById('popupDelaySeconds').value || 3;
-
-      blogState.config.enableHeaderCode = document.getElementById('enableHeaderCode').checked;
-      blogState.config.customHeaderCode = document.getElementById('customHeaderCode').value;
-      blogState.config.enableAnalytics = document.getElementById('enableAnalytics').checked;
-      blogState.config.analyticsCode = document.getElementById('analyticsCode').value;
-
-      await saveAllStateSilently();
-      alert('State saved successfully to Edge Persistent Cache!');
-    }
-
-    async function saveAllStateSilently() {
       try {
-        await fetch('/api/save', {
+        await fetch('/api/posts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(blogState)
+          body: JSON.stringify(blogState.posts)
         });
-      } catch (e) {
-        console.error('Failed to save state', e);
+      } catch (err) {
+        console.warn('Failed to save posts to API', err);
       }
     }
 
-    window.addEventListener('DOMContentLoaded', initBlog);
-    window.addEventListener('popstate', handleRouting);
+    async function deletePost(id) {
+      if (!confirm('Are you sure you want to delete this post?')) return;
+      blogState.posts = blogState.posts.filter(p => String(p.id) !== String(id));
+      renderAdminPostsTable();
+
+      try {
+        await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(blogState.posts)
+        });
+      } catch (err) {
+        console.warn('Failed to delete post from API', err);
+      }
+    }
+
+    function populateAdsConfigForm() {
+      const cfg = blogState.config || {};
+      document.getElementById('enableBeforeTitle').checked = !!cfg.enableBeforeTitle;
+      document.getElementById('adBeforeTitle').value = cfg.adBeforeTitle || '';
+
+      document.getElementById('enableUnderImage').checked = !!cfg.enableUnderImage;
+      document.getElementById('adUnderImage').value = cfg.adUnderImage || '';
+
+      document.getElementById('enableBeforeParagraph').checked = !!cfg.enableBeforeParagraph;
+      document.getElementById('adBeforeParagraph').value = cfg.adBeforeParagraph || '';
+
+      document.getElementById('enablePara30').checked = !!cfg.enablePara30;
+      document.getElementById('adP30').value = cfg.adPara30 || '';
+
+      document.getElementById('enablePara60').checked = !!cfg.enablePara60;
+      document.getElementById('adP60').value = cfg.adPara60 || '';
+
+      document.getElementById('enablePara80').checked = !!cfg.enablePara80;
+      document.getElementById('adP80').value = cfg.adPara80 || '';
+
+      document.getElementById('enableAfterPost').checked = !!cfg.enableAfterPost;
+      document.getElementById('adAfterPost').value = cfg.adAfterPost || '';
+
+      document.getElementById('enablePopupAd').checked = !!cfg.enablePopupAd;
+      document.getElementById('popupDelaySeconds').value = cfg.popupDelaySeconds || 3;
+      document.getElementById('adPopupAd').value = cfg.adPopupAd || '';
+    }
+
+    async function saveAdsConfig(e) {
+      e.preventDefault();
+      const cfg = {
+        enableBeforeTitle: document.getElementById('enableBeforeTitle').checked,
+        adBeforeTitle: document.getElementById('adBeforeTitle').value,
+        enableUnderImage: document.getElementById('enableUnderImage').checked,
+        adUnderImage: document.getElementById('adUnderImage').value,
+        enableBeforeParagraph: document.getElementById('enableBeforeParagraph').checked,
+        adBeforeParagraph: document.getElementById('adBeforeParagraph').value,
+        enablePara30: document.getElementById('enablePara30').checked,
+        adPara30: document.getElementById('adP30').value,
+        enablePara60: document.getElementById('enablePara60').checked,
+        adPara60: document.getElementById('adP60').value,
+        enablePara80: document.getElementById('enablePara80').checked,
+        adPara80: document.getElementById('adP80').value,
+        enableAfterPost: document.getElementById('enableAfterPost').checked,
+        adAfterPost: document.getElementById('adAfterPost').value,
+        enablePopupAd: document.getElementById('enablePopupAd').checked,
+        popupDelaySeconds: parseInt(document.getElementById('popupDelaySeconds').value) || 3,
+        adPopupAd: document.getElementById('adPopupAd').value
+      };
+
+      blogState.config = cfg;
+      alert('Ad configuration saved successfully!');
+
+      try {
+        await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cfg)
+        });
+      } catch (err) {
+        console.warn('Failed to save config to API', err);
+      }
+    }
   </script>
 </body>
 </html>
