@@ -1,8 +1,503 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - JoltFeed CMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .editor-canvas:empty:before {
+      content: "Start writing or paste images, videos, YouTube links here...";
+      color: #9ca3af;
+    }
+    article, #postTitle, #postExcerpt, #postContent, #postBody, .article-content, .article-content * {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      word-wrap: break-word;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+  <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">J</div>
+      <h1 class="text-xl font-bold text-gray-900">JoltFeed Admin</h1>
+    </div>
+    <a href="../index.html" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center space-x-1">
+      <span>View Site</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+    </a>
+  </header>
+
+  <div class="flex-1 flex flex-col md:flex-row">
+    <aside class="w-full md:w-64 bg-white border-r border-gray-200 p-4 flex flex-col space-y-1">
+      <button onclick="switchTab('posts')" id="nav-posts" class="tab-nav w-full text-left px-4 py-2.5 rounded-lg font-medium text-sm text-indigo-600 bg-indigo-50">All Posts</button>
+      <button onclick="switchTab('editor')" id="nav-editor" class="tab-nav w-full text-left px-4 py-2.5 rounded-lg font-medium text-sm text-gray-600 hover:bg-gray-50">New / Edit Post</button>
+      <button onclick="switchTab('ads')" id="nav-ads" class="tab-nav w-full text-left px-4 py-2.5 rounded-lg font-medium text-sm text-gray-600 hover:bg-gray-50">Ad Placements (8 Slots)</button>
+      <button onclick="switchTab('header')" id="nav-header" class="tab-nav w-full text-left px-4 py-2.5 rounded-lg font-medium text-sm text-gray-600 hover:bg-gray-50">Header & Analytics Code</button>
+    </aside>
+
+    <main class="flex-1 p-6 max-w-5xl">
+      <div id="toast" class="hidden fixed bottom-5 right-5 bg-gray-900 text-white px-5 py-3 rounded-lg shadow-xl text-sm z-50"></div>
+
+      <div id="tab-posts" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Manage Posts</h2>
+          <button onclick="createNewPost()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">+ New Post</button>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th class="py-3.5 px-4">Title</th>
+                <th class="py-3.5 px-4">Category</th>
+                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="posts-table-body" class="divide-y divide-gray-200 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-editor" class="tab-content hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h2 id="editor-title" class="text-2xl font-bold text-gray-900">Create Post</h2>
+          <div class="flex space-x-3">
+            <button onclick="switchTab('posts')" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button onclick="saveCurrentPost()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">Save Post</button>
+          </div>
+        </div>
+        <form id="post-form" onsubmit="event.preventDefault(); saveCurrentPost();" class="space-y-6">
+          <input type="hidden" id="post-id">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Post Title</label>
+            <input type="text" id="post-title" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-lg font-semibold" placeholder="Enter title here...">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <input type="text" id="post-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Technology, Design, etc.">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Featured Image URL</label>
+              <input type="url" id="post-image" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm" placeholder="https://images.unsplash.com/...">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Excerpt</label>
+            <textarea id="post-excerpt" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Short summary of the post..."></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Content (Visual Editor)</label>
+            <div id="post-content" contenteditable="true" class="editor-canvas min-h-[300px] p-4 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 prose max-w-none"></div>
+          </div>
+        </form>
+      </div>
+
+      <div id="tab-ads" class="tab-content hidden">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Ad Placements (8 Slots)</h2>
+          <p class="text-sm text-gray-500">Enable toggles and paste HTML/JS ad codes into any slot.</p>
+        </div>
+        <form id="ads-form" onsubmit="event.preventDefault(); saveAdSettings();" class="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_before_title_enabled" class="font-bold text-gray-800 text-sm">Slot 1: Before Title</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_before_title_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_before_title" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Ad code for Before Title..."></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_under_image_enabled" class="font-bold text-gray-800 text-sm">Slot 2: Under Image</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_under_image_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_under_image" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Ad code for Under Featured Image..."></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_before_paragraph_enabled" class="font-bold text-gray-800 text-sm">Slot 3: Before Paragraph 1</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_before_paragraph_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_before_paragraph" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Ad code Before Paragraph 1..."></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_30_percent_enabled" class="font-bold text-gray-800 text-sm">Slot 4: Before 30% of Paragraphs</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_30_percent_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_30_percent" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Ad code at 30% mark..."></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_60_percent_enabled" class="font-bold text-gray-800 text-sm">Slot 5: 60% of Paragraphs</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_60_percent_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_60_percent" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Ad code at 60% mark..."></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_80_percent_enabled" class="font-bold text-gray-800 text-sm">Slot 6: 80% of Paragraphs</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_80_percent_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_80_percent" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Ad code at 80% mark..."></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_after_post_enabled" class="font-bold text-gray-800 text-sm">Slot 7: After Post</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_after_post_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_after_post" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Ad code After Post..."></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="ad_popup_enabled" class="font-bold text-gray-800 text-sm">Slot 8: Pop-Up Ad</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="ad_popup_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="ad_popup" rows="2" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="Pop-Up Ad Code..."></textarea>
+          </div>
+
+          <div class="pt-4 border-t">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow transition text-sm">Save Ad Settings</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="tab-header" class="tab-content hidden">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Header & Analytics Code</h2>
+          <p class="text-sm text-gray-500">Inject custom scripts or tracking pixels into head or body.</p>
+        </div>
+        <form id="header-form" onsubmit="event.preventDefault(); saveHeaderSettings();" class="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="header_code_enabled" class="font-bold text-gray-800 text-sm">Header Code (&lt;head&gt;)</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="header_code_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="header_code" rows="3" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="<!-- Meta tags, Google verification, CSS -->"></textarea>
+          </div>
+
+          <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+            <div class="flex items-center justify-between">
+              <label for="analytics_code_enabled" class="font-bold text-gray-800 text-sm">Analytics / Body Code</label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="analytics_code_enabled" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                <span class="text-sm font-medium text-gray-700">Enable</span>
+              </label>
+            </div>
+            <textarea id="analytics_code" rows="3" class="w-full text-xs font-mono p-2.5 border rounded-lg" placeholder="<!-- Google Analytics, Tracking code -->"></textarea>
+          </div>
+
+          <div class="pt-4 border-t">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow transition text-sm">Save Code Settings</button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-nav').forEach(el => {
+        el.classList.remove('bg-indigo-50', 'text-indigo-600');
+        el.classList.add('text-gray-600');
+      });
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      const activeNav = document.getElementById('nav-' + tabId);
+      if (activeNav) {
+        activeNav.classList.add('bg-indigo-50', 'text-indigo-600');
+        activeNav.classList.remove('text-gray-600');
+      }
+    }
+
+    function getLocalPosts() {
+      try {
+        return JSON.parse(localStorage.getItem('cms_posts')) || [];
+      } catch(e) { return []; }
+    }
+
+    function getLocalConfig() {
+      try {
+        return JSON.parse(localStorage.getItem('cms_config')) || {};
+      } catch(e) { return {}; }
+    }
+
+    function renderPostsList(posts) {
+      const tbody = document.getElementById('posts-table-body');
+      if (!posts || posts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-500">No posts found. Create one!</td></tr>';
+        return;
+      }
+      tbody.innerHTML = posts.map(p => `
+        <tr class="hover:bg-gray-50">
+          <td class="py-3 px-4 font-semibold text-gray-900">${escapeHtml(p.title)}</td>
+          <td class="py-3 px-4 text-gray-600"><span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-xs font-medium">${escapeHtml(p.category || 'General')}</span></td>
+          <td class="py-3 px-4 text-gray-500 text-xs">${p.date || 'Today'}</td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <button onclick="editPost('${p.id}')" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs">Edit</button>
+            <button onclick="deletePost('${p.id}')" class="text-red-600 hover:text-red-900 font-medium text-xs">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function createNewPost() {
+      document.getElementById('editor-title').textContent = 'Create Post';
+      document.getElementById('post-id').value = '';
+      document.getElementById('post-title').value = '';
+      document.getElementById('post-category').value = '';
+      document.getElementById('post-image').value = '';
+      document.getElementById('post-excerpt').value = '';
+      document.getElementById('post-content').innerHTML = '';
+      switchTab('editor');
+    }
+
+    function editPost(id) {
+      const posts = getLocalPosts();
+      const p = posts.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('editor-title').textContent = 'Edit Post';
+      document.getElementById('post-id').value = p.id;
+      document.getElementById('post-title').value = p.title || '';
+      document.getElementById('post-category').value = p.category || '';
+      document.getElementById('post-image').value = p.image || '';
+      document.getElementById('post-excerpt').value = p.excerpt || '';
+      document.getElementById('post-content').innerHTML = p.content || '';
+      switchTab('editor');
+    }
+
+    function deletePost(id) {
+      let posts = getLocalPosts();
+      posts = posts.filter(p => p.id !== id);
+      localStorage.setItem('cms_posts', JSON.stringify(posts));
+      saveStateToServer(getLocalConfig(), posts);
+      renderPostsList(posts);
+      showToast('Post deleted.');
+    }
+
+    function saveCurrentPost() {
+      const title = document.getElementById('post-title').value.trim();
+      if (!title) {
+        showToast('Please enter a post title.');
+        return;
+      }
+      let posts = getLocalPosts();
+      const id = document.getElementById('post-id').value || 'post_' + Date.now();
+      const newPost = {
+        id: id,
+        title: title,
+        category: document.getElementById('post-category').value.trim() || 'General',
+        image: document.getElementById('post-image').value.trim() || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+        excerpt: document.getElementById('post-excerpt').value.trim(),
+        content: document.getElementById('post-content').innerHTML,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      };
+
+      const idx = posts.findIndex(p => p.id === id);
+      if (idx >= 0) {
+        posts[idx] = newPost;
+      } else {
+        posts.unshift(newPost);
+      }
+
+      localStorage.setItem('cms_posts', JSON.stringify(posts));
+      const config = getLocalConfig();
+      config.updatedAt = Date.now();
+      localStorage.setItem('cms_config', JSON.stringify(config));
+      saveStateToServer(config, posts);
+      renderPostsList(posts);
+      showToast('Post saved successfully!');
+      switchTab('posts');
+    }
+
+    function getAdConfigFromForm() {
+      const getC = id => {
+        const el = document.getElementById(id);
+        return el ? el.checked : false;
+      };
+      const getV = id => {
+        const el = document.getElementById(id);
+        return el ? el.value : '';
+      };
+      return {
+        ad_before_title_enabled: getC('ad_before_title_enabled'),
+        ad_before_title: getV('ad_before_title'),
+        ad_under_image_enabled: getC('ad_under_image_enabled'),
+        ad_under_image: getV('ad_under_image'),
+        ad_before_paragraph_enabled: getC('ad_before_paragraph_enabled'),
+        ad_before_paragraph: getV('ad_before_paragraph'),
+        ad_30_percent_enabled: getC('ad_30_percent_enabled'),
+        ad_30_percent: getV('ad_30_percent'),
+        ad_60_percent_enabled: getC('ad_60_percent_enabled'),
+        ad_60_percent: getV('ad_60_percent'),
+        ad_80_percent_enabled: getC('ad_80_percent_enabled'),
+        ad_80_percent: getV('ad_80_percent'),
+        ad_after_post_enabled: getC('ad_after_post_enabled'),
+        ad_after_post: getV('ad_after_post'),
+        ad_popup_enabled: getC('ad_popup_enabled'),
+        ad_popup: getV('ad_popup'),
+        header_code_enabled: getC('header_code_enabled'),
+        header_code: getV('header_code'),
+        analytics_code_enabled: getC('analytics_code_enabled'),
+        analytics_code: getV('analytics_code'),
+        updatedAt: Date.now()
+      };
+    }
+
+    function saveAdSettings() {
+      const config = getAdConfigFromForm();
+      localStorage.setItem('cms_config', JSON.stringify(config));
+      saveStateToServer(config, getLocalPosts());
+      showToast('Ad settings saved!');
+    }
+
+    function saveHeaderSettings() {
+      const config = getAdConfigFromForm();
+      localStorage.setItem('cms_config', JSON.stringify(config));
+      saveStateToServer(config, getLocalPosts());
+      showToast('Header & Analytics code saved!');
+    }
+
+    function populateAdFields(config) {
+      if (!config) return;
+      const setC = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = !!(val === true || val === 'true' || val === 1 || val === '1');
+      };
+      const setV = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+      };
+      setC('ad_before_title_enabled', config.ad_before_title_enabled);
+      setV('ad_before_title', config.ad_before_title);
+      setC('ad_under_image_enabled', config.ad_under_image_enabled);
+      setV('ad_under_image', config.ad_under_image);
+      setC('ad_before_paragraph_enabled', config.ad_before_paragraph_enabled);
+      setV('ad_before_paragraph', config.ad_before_paragraph);
+      setC('ad_30_percent_enabled', config.ad_30_percent_enabled);
+      setV('ad_30_percent', config.ad_30_percent);
+      setC('ad_60_percent_enabled', config.ad_60_percent_enabled);
+      setV('ad_60_percent', config.ad_60_percent);
+      setC('ad_80_percent_enabled', config.ad_80_percent_enabled);
+      setV('ad_80_percent', config.ad_80_percent);
+      setC('ad_after_post_enabled', config.ad_after_post_enabled);
+      setV('ad_after_post', config.ad_after_post);
+      setC('ad_popup_enabled', config.ad_popup_enabled);
+      setV('ad_popup', config.ad_popup);
+      setC('header_code_enabled', config.header_code_enabled);
+      setV('header_code', config.header_code);
+      setC('analytics_code_enabled', config.analytics_code_enabled);
+      setV('analytics_code', config.analytics_code);
+    }
+
+    async function saveStateToServer(config, posts) {
+      try {
+        await fetch('/api/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ config, posts })
+        });
+      } catch(e) {}
+    }
+
+    async function initAdmin() {
+      let localConfig = getLocalConfig();
+      let localPosts = getLocalPosts();
+
+      try {
+        const res = await fetch('/api/state');
+        if (res.ok) {
+          const data = await res.json();
+          const serverConfig = data.config || {};
+          const serverPosts = data.posts || [];
+
+          const serverTime = serverConfig.updatedAt || 0;
+          const localTime = localConfig.updatedAt || 0;
+
+          if (localConfig && localTime > serverTime) {
+            saveStateToServer(localConfig, localPosts.length > 0 ? localPosts : serverPosts);
+          } else if (serverConfig && Object.keys(serverConfig).length > 0) {
+            localStorage.setItem('cms_config', JSON.stringify(serverConfig));
+            localConfig = serverConfig;
+          }
+
+          if (serverPosts && serverPosts.length > 0 && localPosts.length === 0) {
+            localStorage.setItem('cms_posts', JSON.stringify(serverPosts));
+            localPosts = serverPosts;
+          }
+        }
+      } catch(e) {}
+
+      populateAdFields(localConfig);
+      renderPostsList(localPosts);
+    }
+
+    document.addEventListener('DOMContentLoaded', initAdmin);
+  </script>
+</body>
+</html>viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - WordPress Style CMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
